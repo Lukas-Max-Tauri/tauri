@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "start:firebase": "cross-env CONNECTION_MODE=firebase node server.js",
+    "start:local": "cross-env CONNECTION_MODE=local node server.js",
+    "dev:firebase": "cross-env CONNECTION_MODE=firebase nodemon server.js",
+    "dev:local": "cross-env CONNECTION_MODE=local nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^3.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

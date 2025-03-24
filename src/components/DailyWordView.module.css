@@ -1,0 +1,516 @@
+/* DailyWordView.module.css */
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Back Button & Standard Buttons */
+.standardButton,
+.backButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: white;
+}
+
+.standardButton {
+  background-color: #2563eb;
+  width: 100%;
+  max-width: calc(100% - 2rem); /* Verhindert das Ausranden */
+  margin: 0 auto;
+}
+
+.standardButton:hover {
+  background-color: #1d4ed8;
+}
+
+.backButton {
+  background-color: #4b5563;
+  width: fit-content;
+}
+
+.backButton:hover {
+  background-color: #374151;
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.actionButton {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.addButton {
+  background-color: #2563eb;
+  color: white;
+}
+
+.addButton:hover {
+  background-color: #1d4ed8;
+}
+
+.quizButton {
+  background-color: #059669;
+  color: white;
+}
+
+.quizButton:hover {
+  background-color: #047857;
+}
+
+/* Category Folder */
+.categoryFolder {
+  margin-bottom: 1rem;
+}
+
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 0.5rem;
+}
+
+.folderButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.folderIcon {
+  font-size: 1.25rem;
+}
+
+.wordCount {
+  font-size: 0.9rem;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+}
+
+.categoryActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.categoryActions button {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 0.25rem;
+  color: white;
+  cursor: pointer;
+}
+
+.categoryActions button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Word Card */
+.wordCard {
+  background: rgba(17, 24, 39, 0.6);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.wordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.germanWord {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  color: white;
+  font-weight: 500;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.25rem;
+  opacity: 0.7;
+}
+
+.deleteButton:hover {
+  opacity: 1;
+}
+
+/* Translations */
+.translations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.translation {
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* Erhöhter Abstand zwischen Flag und Text */
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.flag {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  min-width: 2rem;
+  text-align: center;
+  color: white; /* Weiße Farbe für Ländercodes */
+}
+
+.translationText {
+  flex: 1;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  margin-left: 0.5rem; /* Zusätzlicher Abstand nach dem Ländercode */
+}
+
+/* Form */
+.formContainer {
+  background: rgba(17, 24, 39, 0.6);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 100%;
+}
+
+.categorySelection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.translationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+}
+
+.translationInput {
+  background: rgba(17, 24, 39, 0.6);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.translationLabel {
+  color: #93c5fd;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.translationInput input {
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.4rem;
+  color: white;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+/* Quiz */
+.quizContainer {
+  background: rgba(17, 24, 39, 0.6);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quizProgress {
+  text-align: center;
+  color: #93c5fd;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 0.5rem;
+}
+
+.quizInput {
+  width: calc(100% - 2rem);
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  text-align: center;
+  margin: 1rem auto;
+  display: block;
+  box-sizing: border-box;
+}
+
+.germanAnswer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 1rem 0;
+}
+
+/* Rest des CSS bleibt gleich... */
+
+/* Messages */
+.error {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.success {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Form Buttons */
+.formButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.submitButton,
+.cancelButton {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton {
+  background-color: #2563eb;
+  border: none;
+  color: white;
+}
+
+.submitButton:hover {
+  background-color: #1d4ed8;
+}
+
+.cancelButton {
+  background-color: #dc2626;
+  border: none;
+  color: white;
+}
+
+.cancelButton:hover {
+  background-color: #b91c1c;
+}
+
+/* Quiz Category Selection */
+.quizSetup {
+  background: rgba(17, 24, 39, 0.6);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quizTitle {
+  color: #93c5fd;
+  font-size: 1.25rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.categoryCheckbox {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.categoryCheckbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white;
+  cursor: pointer;
+}
+
+.categoryCheckbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+}
+
+.quizButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Delete Confirmation */
+.deleteConfirm {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  color: white;
+}
+
+.deleteConfirmButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* New Category Section */
+.newCategorySection {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.addCategoryButton {
+  padding: 0.75rem 1rem;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addCategoryButton:hover {
+  background-color: #1d4ed8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .translationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formButtons {
+    flex-direction: column;
+  }
+
+  .germanAnswer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+}
