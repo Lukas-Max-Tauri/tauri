@@ -1,18 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
+import { SERVER_URL, isTauri } from '../utils/api';
 
 // Überprüfe, ob wir in einer Tauri-Umgebung sind
-// Dynamische Server-URL mit Tauri-Erkennung
-const isTauri = window.navigator.userAgent.includes('Tauri') || 
-               window.location.protocol === 'tauri:' || 
-               window.location.protocol === 'app:';
 
-// Verwende immer die Cloud-URL in Tauri
-const SERVER_URL = isTauri 
-  ? 'https://us-central1-daz-connect.cloudfunctions.net/backend'
-  : (import.meta.env.VITE_API_URL || 'http://localhost:5002');
 
-console.log('Using SERVER_URL:', SERVER_URL, 'isTauri:', isTauri);
+
+
+
 
 // Sprachzuordnung mit Fallback-Optionen
 const LANGUAGE_CODES = {

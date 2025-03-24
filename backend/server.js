@@ -149,36 +149,106 @@ const connectDB = async () => {
 connectDB();
 
 // Google Cloud Konfiguration basierend auf Connection Mode
+// Google Cloud Konfiguration basierend auf Connection Mode
 let credentials;
 let client;
 
 if (connectionMode === 'firebase') {
+  console.log('Versuche Firebase Admin zu initialisieren...');
+  
   try {
+    // 1. Versuche zuerst die Umgebungsvariable zu nutzen
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-      // Versuche zuerst die Umgebungsvariable zu nutzen
+      console.log('GOOGLE_APPLICATION_CREDENTIALS_JSON vorhanden: true');
       credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    } else if (process.env.NODE_ENV !== 'production') {
-      // Fallback auf lokale Datei im Development-Modus
-      try {
-        credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'google-credentials.json'), 'utf8'));
-      } catch (error) {
-        console.warn('Neither environment variable nor local credentials file found');
-        credentials = null;
+      console.log('Credentials aus Umgebungsvariable geladen');
+    } 
+    // 2. Versuche die GOOGLE_APPLICATION_CREDENTIALS Umgebungsvariable für Dateipfad
+    else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.log('GOOGLE_APPLICATION_CREDENTIALS vorhanden: true');
+      credentials = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+      console.log('Credentials aus GOOGLE_APPLICATION_CREDENTIALS Pfad geladen');
+    }
+    // 3. Versuche verschiedene mögliche Pfade für die Credentials-Datei
+    else {
+      console.log('GOOGLE_APPLICATION_CREDENTIALS_JSON vorhanden: false');
+      
+      // Mögliche Pfade für die Credentials-Datei
+      const possiblePaths = [
+        // Lokale Entwicklung
+        path.join(__dirname, 'google-credentials.json'),
+        // Im selben Verzeichnis wie die Server-Datei
+        path.join(process.cwd(), 'google-credentials.json'),
+        // Ein Verzeichnis höher
+        path.join(process.cwd(), '..', 'google-credentials.json'),
+        // Im assets-Verzeichnis (für Tauri)
+        path.join(process.cwd(), 'assets', 'google-credentials.json'),
+        // Ein Verzeichnis höher im assets-Verzeichnis (für Tauri)
+        path.join(process.cwd(), '..', 'assets', 'google-credentials.json'),
+        // Für Tauri produzierte App im resources/assets-Verzeichnis
+        path.join(process.env.TAURI_RESOURCES || '', 'assets', 'google-credentials.json'),
+        process.resourcesPath ? path.join(process.resourcesPath, 'assets', 'google-credentials.json') : null,
+        // src-tauri/assets
+        path.join(process.cwd(), 'src-tauri', 'assets', 'google-credentials.json')
+      ].filter(Boolean); // Null-Werte entfernen
+      
+      let credentialsLoaded = false;
+      
+      for (const credPath of possiblePaths) {
+        try {
+          if (fs.existsSync(credPath)) {
+            console.log('Gefundener Credentials-Pfad:', credPath);
+            credentials = JSON.parse(fs.readFileSync(credPath, 'utf8'));
+            process.env.GOOGLE_APPLICATION_CREDENTIALS = credPath; // Setze den Pfad für andere Libs
+            credentialsLoaded = true;
+            console.log('Service Account geladen: true');
+            break;
+          }
+        } catch (err) {
+          console.log(`Konnte Credentials nicht aus ${credPath} laden:`, err.message);
+        }
       }
+      
+      console.log('Service Account geladen:', credentialsLoaded);
+      
+      if (!credentialsLoaded) {
+        // 4. Fallback: Direkte Einbettung der Credentials als letzten Ausweg
+        // Dies sollte nur verwendet werden, wenn alle anderen Methoden fehlschlagen
+        console.log('Fallback: Versuche eingebettete Credentials zu verwenden');
+        try {
+          credentials = {
+            "type": "service_account",
+            "project_id": "daz-app-449917",
+            "private_key_id": "b83bd899d933c4b55cc944513a4b061bdcaa4638",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCyMT5z5kq5dJAL\ndZtkyaNt2PMVStF5AfyyjWN2yvf+thITAtp3FbKss1QFZVBQya4cDplQ6H9DFXcj\nWQlj8VxSNc+CP3jH8wdpIxpXh1uK2e8N1VmsMyxx9XD7LCF1r9YQ4cYxsoRkfcAh\nW2QX9Lsc1pNKyMWuQw7NLOzp/lnMBn4mlF88cwBxYOe9WstkK7l6H6AGMIrDyu7f\neb7SLJSJMShI+I3Q5R3K2JHhG67IdwiXWNP3GS9x/blsb054uXrajj4AdCIa2wHl\nOUjotzN9Lav4fLkM1sDWfJHjagx3SX/cPJxe75afd+W/B+ZfxHylp38b3xMmIHP7\njm8EdMOVAgMBAAECggEADLsYcWrdYVka1nrBTqbaUoWKvnVxOFJERdR0q/7Nz4ie\nC3YrehEWiiCoytblcVQraI1BdmaZ+wa8U43vrhCHLkdyayWSQUTTfXc40VKWH3o5\nClW5GaSxUvX8a7GINXKJ2nxq7s+Ihm52jNuM7+o3+RQ6g0ALYYsgcle4mHIn47vf\nfiYLV2UgPzdmzOPNBLqr2VBTbfPG6eI35p6MY/mJ46JCzK4kv94s6B1BZAkfZMZ3\nL07HkJVF0D80sTlv0HydOXUwW6Ei6bdT+VZG3e5VHp8mpXnPQXzH2Dd9DozQZGIV\n398wI79rc19fx9idYGZHgoa0bnxdznqgv0eyRvjzGQKBgQDaY7Ygh4wpyKIG0YXR\n+VKL+DzoVWwa/JS6eT2prr4oCVc3P1Wzdt6E3IseHLfXEM3kDHQ3ta+jmXd/HJEM\nsdRm9ok8Ajeb9Wjjoy/SxiGO9SUlUuBERuK7O/eyDXTAd8vIGZyvorm9Zvz9/xR7\nXiWn+Q9umygTSnwmsdpWbxthCQKBgQDQ4VVhoiLuiIHAYzjUJ68Wdn116lsPCVHa\nve97o2aq36kJ7nPLr0D9DS9QBXq20pT70ohFoZR/sXxSQ2U0kEPisX3Hws4zu4Ao\nvxdg7/Vqhi/Zg1GmD0+R6Y9s3eEgB2SNrUVXjyQ/Ajmkjm9hYgDQAplaBBhfXoXL\nd9oXew1NLQKBgQCaePUWRUprM7MHx6Q0RXqR7uCGJgX1gLtiuudW4nc2soSyW2Yv\nLuFucOEmR4Hx6bz4laaO0UCPI7pWespOhGqM+c1QWPEkq42pln/5QpPyHoxLvjdL\nlChD78Lgeowep53Ix/UAdsWSpwpETu0Z5hoUmiLERZMvMfxnEl4xzR08oQKBgQCU\nOKHmwy/4hgNUqtQDsBlNXk2O4/szw1BDYW5UFNJgxI9mDcA7tCPwrW96YDkBDJNN\n0sqCZrNCnYZztYFWeFzDu2Fe5DyAdzftMhR75CsJKSlBNy80ID89cjglb5k1qilP\nY7oF9PwqfgC7ZZthxjJ/aKi7OJa27hMRG/41lUsODQKBgAC2dHZf2xf0Wt4IAhGN\n+xi4sKW/Hp/zbmby+zlfyAZKc1xCKrFr/XCSFrySJb4oWtRWfXtZffft5wkzCxoA\nkPlxgIPlVOcF8ZuLl+zre3QVcboUCb1ZvJwZzkfbtWo2X5zDawXBvwf1L9Q9W3bj\nKe8QWZWVByvDiOzSqkIp3Lus\n-----END PRIVATE KEY-----\n",
+            "client_email": "daz-app-schl-ssel@daz-app-449917.iam.gserviceaccount.com",
+            "client_id": "108459019004721663412",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/daz-app-schl-ssel%40daz-app-449917.iam.gserviceaccount.com",
+            "universe_domain": "googleapis.com"
+          };
+          console.log('Firebase Admin SDK erfolgreich initialisiert (Alternative Methode)');
+        } catch (err) {
+          console.log('Konnte auch eingebettete Credentials nicht verwenden:', err.message);
+          credentials = null;
+        }
+      }
+    }
+
+    // Erstelle den TextToSpeechClient nur wenn Credentials verfügbar sind
+    if (credentials) {
+      client = new TextToSpeechClient({
+        credentials,
+        projectId: credentials.project_id
+      });
     } else {
-      throw new Error('Google credentials not found');
+      throw new Error('Keine Credentials gefunden');
     }
   } catch (error) {
-    console.warn('Warning: Google Cloud credentials not loaded:', error.message);
+    console.error('Firebase Admin kann nicht initialisiert werden:', error.message);
     credentials = null;
-  }
-
-  // Erstelle den TextToSpeechClient nur wenn Credentials verfügbar sind
-  if (credentials) {
-    client = new TextToSpeechClient({
-      credentials,
-      projectId: credentials.project_id
-    });
   }
 } else {
   console.log('Local mode: Text-to-Speech service will use mock responses');

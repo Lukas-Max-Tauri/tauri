@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import styled from 'styled-components';
+import { SERVER_URL, isTauri } from '../utils/api';
 
 // Styled Components für das Profilformular
 const ProfileContainer = styled.div`
@@ -193,10 +194,10 @@ const ProfileForm = () => {
     
     try {
       // Korrekter Endpunkt für die Passwortänderung
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/auth/updatePassword`, {
+      const response = await fetch(`${SERVER_URL}/api/auth/updatePassword`, {
         method: 'PATCH',  // Richtige HTTP-Methode ist PATCH
         headers: {
           'Content-Type': 'application/json',

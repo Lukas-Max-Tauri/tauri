@@ -18,12 +18,13 @@ import {
 
 // Firebase-Konfiguration importieren
 import { db, auth } from '../firebaseConfig';
+import { SERVER_URL, isTauri } from '../utils/api';
+console.log('AuthContext using SERVER_URL:', SERVER_URL, 'isTauri:', isTauri);
+
 
 const AuthContext = createContext({});
 
-// SERVER_URL aus der Umgebungsvariable
-const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-console.log('Using SERVER_URL:', SERVER_URL);
+
 
 // Gemeinsame Fetch-Konfiguration - mit nativer Fetch API
 const fetchWithCredentials = async (url, options = {}) => {

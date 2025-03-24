@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Routes, Route, BrowserRouter } from 'react-router-dom';
+import { SERVER_URL, isTauri } from './utils/api';
 
 // Komponenten Imports
 import LearnGerman from './components/LearnGerman';
@@ -157,6 +158,7 @@ const updateLastSyncedState = (key, state) => {
   }
 };
 // Protected Route Component
+// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
@@ -170,29 +172,46 @@ const ProtectedRoute = ({ children }) => {
   
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
-
-// LicenseProtectedRoute Component
+// LicenseProtectedRoute Component mit Debug-Informationen
 const LicenseProtectedRoute = ({ children }) => {
   const [hasValidLicense, setHasValidLicense] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   
+  // Debug-Informationen bei Initialisierung
+  console.log("LicenseProtectedRoute - Initialisiere");
+  console.log("SERVER_URL:", SERVER_URL);
+  console.log("isTauri:", isTauri);
+  
   useEffect(() => {
+    // Debugging vor der Lizenzprüfung
+    console.log("LicenseProtectedRoute - Prüfe Lizenz");
+    console.log("Aktuelle Umgebung - isTauri:", isTauri, "SERVER_URL:", SERVER_URL);
+    
     // Prüfen, ob eine gültige Lizenz gespeichert ist
     try {
       const savedLicense = localStorage.getItem('dazConnectLicense');
+      console.log("Gespeicherte Lizenz:", savedLicense ? "Vorhanden" : "Nicht vorhanden");
       
       if (savedLicense) {
         const licenseInfo = JSON.parse(savedLicense);
+        console.log("Lizenz-Info:", licenseInfo);
         const expiryDate = new Date(licenseInfo.expiryDate);
         const currentDate = new Date();
+        console.log("Ablaufdatum:", expiryDate, "Aktuelles Datum:", currentDate);
         
         if (currentDate <= expiryDate) {
+          console.log("Lizenz ist gültig - Zugriff gewährt");
           setHasValidLicense(true);
+        } else {
+          console.log("Lizenz ist abgelaufen - Zugriff verweigert");
         }
+      } else {
+        console.log("Keine Lizenz gefunden - Zeige Aktivierungsbildschirm");
       }
     } catch (error) {
       console.error('Fehler beim Überprüfen der Lizenz:', error);
     } finally {
+      console.log("Lizenzprüfung abgeschlossen");
       setIsChecking(false);
     }
   }, []);
@@ -203,6 +222,11 @@ const LicenseProtectedRoute = ({ children }) => {
         <S.LoadingSpinner>Lizenz wird überprüft...</S.LoadingSpinner>
       </S.LoadingContainer>
     );
+  }
+  
+  // Für Debugging-Zwecke: Log wenn der Lizenzaktivierungsbildschirm angezeigt wird
+  if (!hasValidLicense) {
+    console.log("Zeige LicenseActivation-Komponente");
   }
   
   return hasValidLicense ? children : <LicenseActivation onLicenseActivated={() => setHasValidLicense(true)} />;
@@ -566,9 +590,7 @@ const MainAppContent = () => {
         }
         
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-          
-          const result = await fetchWithClient(`${API_URL}/api/auth/me`, {
+          const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
             method: 'PATCH',
             body: JSON.stringify({
               progress: {
@@ -627,9 +649,7 @@ const handleMissionComplete = async (missionsTyp, anzahl = 1, showLevelUpPopup =
 
   if (isAuthenticated && apiAuthenticated) {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-      
-      const result = await fetchWithClient(`${API_URL}/api/auth/me`, {
+      const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
         method: 'PATCH',
         body: JSON.stringify({
           progress: {
@@ -669,9 +689,7 @@ const handleMissionComplete = async (missionsTyp, anzahl = 1, showLevelUpPopup =
   
     if (isAuthenticated && apiAuthenticated) {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-        
-        const result = await fetchWithClient(`${API_URL}/api/auth/me`, {
+        const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
           method: 'PATCH',
           body: JSON.stringify({
             selectedLanguages: newSelection

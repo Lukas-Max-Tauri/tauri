@@ -11,12 +11,12 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
+import { SERVER_URL, isTauri } from '../utils/api';
+const API_URL = SERVER_URL;
 
 // GameSave-Context erstellen
 const GameSaveContext = createContext({});
 
-// API URL aus Umgebungsvariablen
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
 
 // Hook zum einfachen Zugriff auf den GameSave-Context
 export const useGameSave = () => useContext(GameSaveContext);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sentences } from '../data/sentences';
 import styles from './SentenceStructureGame.module.css';
 import { Volume2, VolumeX } from 'lucide-react';
+import { SERVER_URL, isTauri } from '../utils/api';
 
 // Language configuration
 const LANGUAGE_CONFIG = {
@@ -61,7 +62,7 @@ const AudioButton = ({ text, language }) => {
         tigrinya: 'ar-XA'
       }[language] || 'de-DE';
 
-      const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+      
       const response = await fetch(`${SERVER_URL}/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
