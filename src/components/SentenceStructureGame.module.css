@@ -112,6 +112,22 @@
   border-color: #fbbf24;
 }
 
+.selected-word {
+  background-color: #4a6bff;
+  box-shadow: 0 0 0 2px #fff;
+  transform: scale(1.05);
+}
+
+/* Verbesserter Hover-Effekt für alle Wörter */
+.draggable-word {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draggable-word:hover {
+  background-color: #3a5bd9;
+}
+
 .button-warning:hover {
   background: #d97706;
 }

@@ -643,3 +643,69 @@ select.form-input:hover {
 .verb-button:active {
   transform: translateY(1px);
 }
+
+/* Neue Styles zur Unterstützung des Klick-Fallback-Modus */
+
+/* Stil für klickbare Verbendungen */
+.verb-ending.clickable {
+  padding: 6px 12px;
+  background-color: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 8px;
+  margin: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  color: #e5e7eb;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.verb-ending.clickable:hover {
+  transform: scale(1.05) translateY(-2px);
+  background: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.verb-ending.clickable.selected {
+  background-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 2px #93c5fd;
+  transform: scale(1.05);
+}
+
+/* Stil für klickbare Dropzones */
+.verb-ending-dropzone.selectable {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.5);
+}
+
+.verb-ending-dropzone.selectable:hover {
+  background-color: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+/* Info-Box für den Fallback-Modus */
+.fallback-info {
+  margin: 1rem 0;
+  padding: 1rem 1.5rem;
+  background-color: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #6366f1;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Verbesserte Drag & Drop Styles */
+.draggable-ending {
+  cursor: grab;
+}
+
+.draggable-ending:active {
+  cursor: grabbing;
+}

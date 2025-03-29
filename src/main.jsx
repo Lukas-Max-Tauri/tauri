@@ -9,7 +9,7 @@ window.addEventListener('error', (event) => {
   alert(`App-Fehler: ${event.message}`); // Einfache Alert-Box für sofortige Sichtbarkeit
 });
 
-// Einfache Error Boundary Komponente - NACH OBEN VERSCHOBEN
+// Einfache Error Boundary Komponente
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);

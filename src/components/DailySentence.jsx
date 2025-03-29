@@ -389,19 +389,48 @@ const WordContainer = styled.div`
   padding: 1rem;
 `;
 
+// Verbesserte DraggableWord-Komponente mit visueller Rückmeldung für Klick-Ansatz
 const DraggableWord = styled.div`
   background: #4f46e5;
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  cursor: move;
+  cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
   border: 1px solid #6366f1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
   &:hover {
     transform: scale(1.05);
     background: #4338ca;
+  }
+  
+  &.selected {
+    background: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.5);
+    transform: scale(1.05);
+  }
+`;
+
+// Neue Komponente für die Hilfe-Box
+const HelpBox = styled.div`
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 4px solid #6366f1;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  animation: ${fadeIn} 0.3s ease;
+
+  h4 {
+    color: #93c5fd;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0.5rem 0;
+    color: #e5e7eb;
   }
 `;
 
@@ -558,475 +587,506 @@ function DailySentence({
  onComplete
 }) {
   const [mode, setMode] = useState('main');
- const [newCategory, setNewCategory] = useState('');
- const [quizSentences, setQuizSentences] = useState([]);
- const [currentIndex, setCurrentIndex] = useState(0);
- const [showAnswer, setShowAnswer] = useState(false);
- const [feedback, setFeedback] = useState('');
- const [showHint, setShowHint] = useState(false);
- const [showTranslations, setShowTranslations] = useState(false);
- const [currentWords, setCurrentWords] = useState([]);
- const [successMessage, setSuccessMessage] = useState('');
- const [newSentence, setNewSentence] = useState({
-   german: '',
-   ukrainian: '',
-   arabic: '',
-   turkish: '',
-   english: '',
-   spanish: '',
-   russian: '',
-   polish: '',
-   romanian: '',
-   ku: '',
-   farsi: '',
-   albanian: '',
-   serbian: '',
-   italian: '',
-   pashto: '',
-   somali: '',
-   tigrinya: '',
-   category: '',
-   hint: ''
- });
- const [error, setError] = useState('');
+  const [newCategory, setNewCategory] = useState('');
+  const [quizSentences, setQuizSentences] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [showHint, setShowHint] = useState(false);
+  const [showTranslations, setShowTranslations] = useState(false);
+  const [currentWords, setCurrentWords] = useState([]);
+  const [successMessage, setSuccessMessage] = useState('');
+  // Neue Zustandsvariablen für den klickbasierten Ansatz
+  const [selectedWordIndex, setSelectedWordIndex] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [newSentence, setNewSentence] = useState({
+    german: '',
+    ukrainian: '',
+    arabic: '',
+    turkish: '',
+    english: '',
+    spanish: '',
+    russian: '',
+    polish: '',
+    romanian: '',
+    ku: '',
+    farsi: '',
+    albanian: '',
+    serbian: '',
+    italian: '',
+    pashto: '',
+    somali: '',
+    tigrinya: '',
+    category: '',
+    hint: ''
+  });
+  const [error, setError] = useState('');
 
- // Language configuration for form labels and flags 
- const languageConfig = {
-   ukrainian: { label: 'Ukrainisch', flag: '🇺🇦' },
-   arabic: { label: 'Arabisch', flag: '🇸🇦' },
-   turkish: { label: 'Türkisch', flag: '🇹🇷' },
-   english: { label: 'Englisch', flag: '🇬🇧' }, 
-   spanish: { label: 'Spanisch', flag: '🇪🇸' },
-   russian: { label: 'Russisch', flag: '🇷🇺' },
-   polish: { label: 'Polnisch', flag: '🇵🇱' },
-   romanian: { label: 'Rumänisch', flag: '🇷🇴' },
-   ku: { label: 'Kurdisch', flag: '🇹🇯' },
-   farsi: { label: 'Farsi', flag: '🇮🇷' },
-   albanian: { label: 'Albanisch', flag: '🇦🇱' },
-   serbian: { label: 'Serbisch', flag: '🇷🇸' },
-   italian: { label: 'Italienisch', flag: '🇮🇹' },
-   pashto: { label: 'Paschtu', flag: '🇦🇫' },
-   somali: { label: 'Somali', flag: '🇸🇴' },
-   tigrinya: { label: 'Tigrinya', flag: '🇪🇷' }
- };
+  // Language configuration for form labels and flags 
+  const languageConfig = {
+    ukrainian: { label: 'Ukrainisch', flag: '🇺🇦' },
+    arabic: { label: 'Arabisch', flag: '🇸🇦' },
+    turkish: { label: 'Türkisch', flag: '🇹🇷' },
+    english: { label: 'Englisch', flag: '🇬🇧' }, 
+    spanish: { label: 'Spanisch', flag: '🇪🇸' },
+    russian: { label: 'Russisch', flag: '🇷🇺' },
+    polish: { label: 'Polnisch', flag: '🇵🇱' },
+    romanian: { label: 'Rumänisch', flag: '🇷🇴' },
+    ku: { label: 'Kurdisch', flag: '🇹🇯' },
+    farsi: { label: 'Farsi', flag: '🇮🇷' },
+    albanian: { label: 'Albanisch', flag: '🇦🇱' },
+    serbian: { label: 'Serbisch', flag: '🇷🇸' },
+    italian: { label: 'Italienisch', flag: '🇮🇹' },
+    pashto: { label: 'Paschtu', flag: '🇦🇫' },
+    somali: { label: 'Somali', flag: '🇸🇴' },
+    tigrinya: { label: 'Tigrinya', flag: '🇪🇷' }
+  };
 
- const handleInputChange = (field, value) => {
-   setNewSentence(prev => ({
-     ...prev,
-     [field]: value
-   }));
-   setError('');
- };
+  const handleInputChange = (field, value) => {
+    setNewSentence(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setError('');
+  };
 
- const handleSubmit = () => {
-   if (!newSentence.german.trim()) {
-     setError('Der deutsche Satz muss ausgefüllt werden!');
-     return;
-   }
+  const handleSubmit = () => {
+    if (!newSentence.german.trim()) {
+      setError('Der deutsche Satz muss ausgefüllt werden!');
+      return;
+    }
 
-   if (!newSentence.category) {
-     setError('Bitte wähle eine Kategorie aus!');
-     return;
-   }
+    if (!newSentence.category) {
+      setError('Bitte wähle eine Kategorie aus!');
+      return;
+    }
 
-   const hasTranslation = selectedLanguages.some(lang => newSentence[lang]?.trim());
-   if (!hasTranslation) {
-     setError('Mindestens eine Übersetzung muss angegeben werden!');
-     return;
-   }
+    const hasTranslation = selectedLanguages.some(lang => newSentence[lang]?.trim());
+    if (!hasTranslation) {
+      setError('Mindestens eine Übersetzung muss angegeben werden!');
+      return;
+    }
 
-   onAddSentence(newSentence);
-   setSuccessMessage('Satz erfolgreich gespeichert!');
-   setTimeout(() => setSuccessMessage(''), 3000);
+    onAddSentence(newSentence);
+    setSuccessMessage('Satz erfolgreich gespeichert!');
+    setTimeout(() => setSuccessMessage(''), 3000);
 
-   setNewSentence(prev => ({
-     german: '',
-     ukrainian: '',
-     arabic: '',
-     turkish: '',
-     english: '',
-     spanish: '',
-     russian: '',
-     polish: '',
-     romanian: '',
-     ku: '',
-     farsi: '',
-     albanian: '',
-     serbian: '',
-     italian: '',
-     pashto: '',
-     somali: '',
-     tigrinya: '',
-     category: prev.category,
-     hint: ''
-   }));
- };
+    setNewSentence(prev => ({
+      german: '',
+      ukrainian: '',
+      arabic: '',
+      turkish: '',
+      english: '',
+      spanish: '',
+      russian: '',
+      polish: '',
+      romanian: '',
+      ku: '',
+      farsi: '',
+      albanian: '',
+      serbian: '',
+      italian: '',
+      pashto: '',
+      somali: '',
+      tigrinya: '',
+      category: prev.category,
+      hint: ''
+    }));
+  };
 
-// Verbesserte Fisher-Yates Shuffle-Funktion
-const shuffleArray = (array) => {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-};
+  // Verbesserte Fisher-Yates Shuffle-Funktion
+  const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
 
-// Diese Funktion garantiert, dass die gemischte Reihenfolge 
-// sich von der Originalreihenfolge unterscheidet
-const guaranteedShuffle = (array) => {
-  // Wenn die Liste nur 1 oder 2 Elemente hat, kann man nicht garantieren,
-  // dass die gemischte Reihenfolge anders als das Original ist
-  if (array.length <= 2) return shuffleArray(array);
-  
-  const original = [...array];
-  let shuffled = shuffleArray(array);
-  
-  // Prüfen, ob die Reihenfolge gleich geblieben ist
-  const isEqual = shuffled.every((item, index) => item === original[index]);
-  
-  // Wenn gleich, nochmal mischen (maximal 5 Versuche)
-  let attempts = 0;
-  while (isEqual && attempts < 5) {
-    shuffled = shuffleArray(array);
-    attempts++;
-  }
-  
-  return shuffled;
-};
+  // Diese Funktion garantiert, dass die gemischte Reihenfolge 
+  // sich von der Originalreihenfolge unterscheidet
+  const guaranteedShuffle = (array) => {
+    // Wenn die Liste nur 1 oder 2 Elemente hat, kann man nicht garantieren,
+    // dass die gemischte Reihenfolge anders als das Original ist
+    if (array.length <= 2) return shuffleArray(array);
+    
+    const original = [...array];
+    let shuffled = shuffleArray(array);
+    
+    // Prüfen, ob die Reihenfolge gleich geblieben ist
+    const isEqual = shuffled.every((item, index) => item === original[index]);
+    
+    // Wenn gleich, nochmal mischen (maximal 5 Versuche)
+    let attempts = 0;
+    while (isEqual && attempts < 5) {
+      shuffled = shuffleArray(array);
+      attempts++;
+    }
+    
+    return shuffled;
+  };
 
- const resetQuizState = () => {
-   setCurrentIndex(0);
-   setQuizSentences([]);
-   setCurrentWords([]);
-   setShowAnswer(false);
-   setFeedback('');
-   setShowHint(false);
-   setShowTranslations(false);
- };
+  // Neue Funktion für den klickbasierten Ansatz
+  const handleWordClick = (index) => {
+    if (selectedWordIndex === null) {
+      // Erstes Wort auswählen
+      setSelectedWordIndex(index);
+    } else {
+      // Zweites Wort wählen und austauschen
+      const newWords = [...currentWords];
+      [newWords[selectedWordIndex], newWords[index]] = [newWords[index], newWords[selectedWordIndex]];
+      setCurrentWords(newWords);
+      setSelectedWordIndex(null); // Auswahl zurücksetzen
+      
+      // Rückmeldungen zurücksetzen
+      setShowAnswer(false);
+      setFeedback('');
+    }
+  };
 
- const renderContent = () => {
-   switch(mode) {
-     case 'add':
-       return (
-         <Form>
-           <FormGroup>
-             <Label>Kategorie</Label>
-             <div style={{ marginBottom: '1rem' }}>
-               <Select
-                 value={newSentence.category}
-                 onChange={(e) => handleInputChange('category', e.target.value)}
-               >
-                 <option value="">Kategorie auswählen...</option>
-                 {categories.map((cat) => (
-                   <option key={cat.id} value={cat.id}>
-                     {cat.path.join(' > ')}
-                   </option>
-                 ))}
-               </Select>
-             </div>
-             <div style={{ display: 'flex', gap: '1rem' }}>
-               <Input
-                 type="text"
-                 value={newCategory}
-                 onChange={(e) => setNewCategory(e.target.value)}
-                 placeholder="Neue Kategorie..."
-               />
-               <ActionButton
-                 $primary
-                 onClick={() => {
-                   if (newCategory.trim()) {
-                     onAddCategory(newCategory.trim());
-                     setNewCategory('');
-                   }
-                 }}
-                 style={{ minWidth: '44px', width: '44px', padding: '0' }}
-               >
-                 ➕
-               </ActionButton>
-             </div>
-           </FormGroup>
+  const resetQuizState = () => {
+    setCurrentIndex(0);
+    setQuizSentences([]);
+    setCurrentWords([]);
+    setShowAnswer(false);
+    setFeedback('');
+    setShowHint(false);
+    setShowTranslations(false);
+    setSelectedWordIndex(null); // Zurücksetzen der Wortauswahl
+    setShowHelp(false); // Zurücksetzen der Hilfeanzeige
+  };
 
-           <FormGroup>
-             <Label>Deutscher Satz</Label>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-               <TextArea
-                 value={newSentence.german}
-                 onChange={(e) => handleInputChange('german', e.target.value)}
-                 placeholder="Deutscher Satz *"
-               />
-               {newSentence.german && 
-                 <AudioButton text={newSentence.german} language="🇩🇪" />
-               }
-             </div>
-           </FormGroup>
+  const renderContent = () => {
+    switch(mode) {
+      case 'add':
+        return (
+          <Form>
+            <FormGroup>
+              <Label>Kategorie</Label>
+              <div style={{ marginBottom: '1rem' }}>
+                <Select
+                  value={newSentence.category}
+                  onChange={(e) => handleInputChange('category', e.target.value)}
+                >
+                  <option value="">Kategorie auswählen...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.path.join(' > ')}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <Input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Neue Kategorie..."
+                />
+                <ActionButton
+                  $primary
+                  onClick={() => {
+                    if (newCategory.trim()) {
+                      onAddCategory(newCategory.trim());
+                      setNewCategory('');
+                    }
+                  }}
+                  style={{ minWidth: '44px', width: '44px', padding: '0' }}
+                >
+                  ➕
+                </ActionButton>
+              </div>
+            </FormGroup>
 
-           {selectedLanguages.map(lang => (
-             <FormGroup key={lang}>
-               {languageConfig[lang] && (
-                 <>
-                   <Label>{languageConfig[lang].flag} {languageConfig[lang].label}</Label>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                     <TextArea
-                       value={newSentence[lang]}
-                       onChange={(e) => handleInputChange(lang, e.target.value)}
-                       placeholder={`${languageConfig[lang].label}e Übersetzung`}
-                       dir={lang === 'arabic' || lang === 'farsi' ? 'rtl' : 'ltr'}
-                     />
-                     {newSentence[lang] && 
-                       <AudioButton text={newSentence[lang]} language={languageConfig[lang].flag} />
-                     }
-                   </div>
-                 </>
-               )}
-             </FormGroup>
-           ))}
+            <FormGroup>
+              <Label>Deutscher Satz</Label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <TextArea
+                  value={newSentence.german}
+                  onChange={(e) => handleInputChange('german', e.target.value)}
+                  placeholder="Deutscher Satz *"
+                />
+                {newSentence.german && 
+                  <AudioButton text={newSentence.german} language="🇩🇪" />
+                }
+              </div>
+            </FormGroup>
 
-           <FormGroup>
-             <Label>Hinweis (optional)</Label>
-             <TextArea
-               value={newSentence.hint}
-               onChange={(e) => handleInputChange('hint', e.target.value)}
-               placeholder="Hinweis zur Satzstruktur"
-             />
-           </FormGroup>
+            {selectedLanguages.map(lang => (
+              <FormGroup key={lang}>
+                {languageConfig[lang] && (
+                  <>
+                    <Label>{languageConfig[lang].flag} {languageConfig[lang].label}</Label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <TextArea
+                        value={newSentence[lang]}
+                        onChange={(e) => handleInputChange(lang, e.target.value)}
+                        placeholder={`${languageConfig[lang].label}e Übersetzung`}
+                        dir={lang === 'arabic' || lang === 'farsi' ? 'rtl' : 'ltr'}
+                      />
+                      {newSentence[lang] && 
+                        <AudioButton text={newSentence[lang]} language={languageConfig[lang].flag} />
+                      }
+                    </div>
+                  </>
+                )}
+              </FormGroup>
+            ))}
 
-           {error && <Error>{error}</Error>}
-           {successMessage && <Success>{successMessage}</Success>}
+            <FormGroup>
+              <Label>Hinweis (optional)</Label>
+              <TextArea
+                value={newSentence.hint}
+                onChange={(e) => handleInputChange('hint', e.target.value)}
+                placeholder="Hinweis zur Satzstruktur"
+              />
+            </FormGroup>
 
-           <ButtonContainer>
-  <ActionButton $primary onClick={handleSubmit}>
-    Satz speichern
-  </ActionButton>
-  <ActionButton $secondary onClick={() => setMode('main')}>
-    Zurück
-  </ActionButton>
-</ButtonContainer>
-         </Form>
-       );
+            {error && <Error>{error}</Error>}
+            {successMessage && <Success>{successMessage}</Success>}
 
-     case 'categorySelect':
-       return (
-         <Form>
-           <Title>Quiz - Kategorien auswählen</Title>
-           <div style={{ marginBottom: '2rem' }}>
-             {categories.map((category) => (
-               <div key={category.id} style={{ marginBottom: '1rem' }}>
-                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                   <input
-                     type="checkbox"
-                     onChange={(e) => {
-                       if (e.target.checked) {
-                         const newSentences = sentences.filter(s => s.category === category.id);
-                         setQuizSentences(prev => [...prev, ...newSentences]);
-                       } else {
-                         setQuizSentences(prev =>
-                           prev.filter(s => s.category !== category.id)
-                         );
-                       }
-                     }}
-                     style={{ width: '1.2rem', height: '1.2rem' }}
-                   />
-                   {category.path.join(' > ')}
-                 </label>
-               </div>
-             ))}
-           </div>
+            <ButtonContainer>
+              <ActionButton $primary onClick={handleSubmit}>
+                Satz speichern
+              </ActionButton>
+              <ActionButton $secondary onClick={() => setMode('main')}>
+                Zurück
+              </ActionButton>
+            </ButtonContainer>
+          </Form>
+        );
 
-           {error && <Error>{error}</Error>}
+      case 'categorySelect':
+        return (
+          <Form>
+            <Title>Quiz - Kategorien auswählen</Title>
+            <div style={{ marginBottom: '2rem' }}>
+              {categories.map((category) => (
+                <div key={category.id} style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          const newSentences = sentences.filter(s => s.category === category.id);
+                          setQuizSentences(prev => [...prev, ...newSentences]);
+                        } else {
+                          setQuizSentences(prev =>
+                            prev.filter(s => s.category !== category.id)
+                          );
+                        }
+                      }}
+                      style={{ width: '1.2rem', height: '1.2rem' }}
+                    />
+                    {category.path.join(' > ')}
+                  </label>
+                </div>
+              ))}
+            </div>
 
-           <div style={{ display: 'flex', gap: '1rem' }}>
-             <ActionButton
-               $primary
-               onClick={() => {
-                 if (quizSentences.length === 0) {
-                   setError('Bitte wähle mindestens eine Kategorie aus');
-                   return;
-                 }
-                 // Mische die ausgewählten Sätze
-                 const shuffledSentences = [...quizSentences].sort(() => Math.random() - 0.5);
-                 setQuizSentences(shuffledSentences);
-                 // Setze das erste Wort
-                 setCurrentWords(shuffledSentences[0].german.split(' ').sort(() => Math.random() - 0.5));
-                 setCurrentIndex(0);
-                 setMode('quiz');
-               }}
-             >
-               Quiz starten ({quizSentences.length} Sätze)
-             </ActionButton>
-             <ActionButton $secondary onClick={() => {
-               setMode('main');
-               setQuizSentences([]);
-               setError('');
-             }}>
-               Zurück
-             </ActionButton>
-           </div>
-         </Form>
-       );
+            {error && <Error>{error}</Error>}
 
-     case 'quiz':
-       const currentSentence = quizSentences[currentIndex];
-       return (
-         <QuizContainer>
-           <QuizProgress>
-             Satz {currentIndex + 1} von {quizSentences.length}
-           </QuizProgress>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <ActionButton
+                $primary
+                onClick={() => {
+                  if (quizSentences.length === 0) {
+                    setError('Bitte wähle mindestens eine Kategorie aus');
+                    return;
+                  }
+                  // Mische die ausgewählten Sätze
+                  const shuffledSentences = [...quizSentences].sort(() => Math.random() - 0.5);
+                  setQuizSentences(shuffledSentences);
+                  // Setze das erste Wort
+                  setCurrentWords(shuffledSentences[0].german.split(' ').sort(() => Math.random() - 0.5));
+                  setCurrentIndex(0);
+                  setMode('quiz');
+                }}
+              >
+                Quiz starten ({quizSentences.length} Sätze)
+              </ActionButton>
+              <ActionButton $secondary onClick={() => {
+                setMode('main');
+                setQuizSentences([]);
+                setError('');
+              }}>
+                Zurück
+              </ActionButton>
+            </div>
+          </Form>
+        );
 
-           {currentSentence && (
-             <>
-               {showTranslations && (
-                 <TranslationGroup>
-                   {selectedLanguages.map(lang => {
-                     const langConfig = languageConfig[lang];
-                     if (!langConfig || !currentSentence[lang]) return null;
+      case 'quiz':
+        const currentSentence = quizSentences[currentIndex];
+        return (
+          <QuizContainer>
+            <QuizProgress>
+              Satz {currentIndex + 1} von {quizSentences.length}
+            </QuizProgress>
 
-                     return (
-                       <Translation key={lang}>
-                         <span className="flag">{langConfig.flag}</span>
-                         {currentSentence[lang]}
-                         <AudioButton text={currentSentence[lang]} language={langConfig.flag} />
-                       </Translation>
-                     );
-                   })}
-                 </TranslationGroup>
-               )}
+            {currentSentence && (
+              <>
+                {showTranslations && (
+                  <TranslationGroup>
+                    {selectedLanguages.map(lang => {
+                      const langConfig = languageConfig[lang];
+                      if (!langConfig || !currentSentence[lang]) return null;
 
-               <DragDropArea>
-                 <WordContainer>
-                   {currentWords.map((word, index) => (
-                     <DraggableWord
-                       key={index}
-                       draggable
-                       onDragStart={(e) => e.dataTransfer.setData('text/plain', index.toString())}
-                       onDragOver={(e) => e.preventDefault()}
-                       onDrop={(e) => {
-                         e.preventDefault();
-                         const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                         const newWords = [...currentWords];
-                         [newWords[draggedIndex], newWords[index]] = [newWords[index], newWords[draggedIndex]];
-                         setCurrentWords(newWords);
-                         setShowAnswer(false);
-                         setFeedback('');
-                       }}
-                     >
-                       {word}
-                     </DraggableWord>
-                   ))}
-                 </WordContainer>
-               </DragDropArea>
+                      return (
+                        <Translation key={lang}>
+                          <span className="flag">{langConfig.flag}</span>
+                          {currentSentence[lang]}
+                          <AudioButton text={currentSentence[lang]} language={langConfig.flag} />
+                        </Translation>
+                      );
+                    })}
+                  </TranslationGroup>
+                )}
 
-               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'center' }}>
-                 <QuizButton onClick={() => setShowTranslations(!showTranslations)}>
-                   {showTranslations ? 'Übersetzungen ausblenden' : 'Übersetzungen anzeigen'}
-                 </QuizButton>
+                <DragDropArea>
+                  <WordContainer>
+                    {currentWords.map((word, index) => (
+                      <DraggableWord
+                        key={index}
+                        className={selectedWordIndex === index ? 'selected' : ''}
+                        onClick={() => handleWordClick(index)}
+                      >
+                        {word}
+                      </DraggableWord>
+                    ))}
+                  </WordContainer>
+                </DragDropArea>
 
-                 <QuizButton onClick={() => setShowHint(!showHint)}>
-                   {showHint ? 'Hinweis ausblenden' : 'Hinweis anzeigen'}
-                 </QuizButton>
-               </div>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <QuizButton onClick={() => setShowTranslations(!showTranslations)}>
+                    {showTranslations ? 'Übersetzungen ausblenden' : 'Übersetzungen anzeigen'}
+                  </QuizButton>
 
-               {showHint && currentSentence.hint && (
-                 <Hint>
-                   <strong>Hinweis:</strong> {currentSentence.hint}
-                 </Hint>
-               )}
+                  <QuizButton onClick={() => setShowHint(!showHint)}>
+                    {showHint ? 'Hinweis ausblenden' : 'Hinweis anzeigen'}
+                  </QuizButton>
+                  
+                  <QuizButton onClick={() => setShowHelp(!showHelp)}>
+                    {showHelp ? 'Hilfe ausblenden' : 'Wie funktioniert das?'}
+                  </QuizButton>
+                </div>
+                
+                {showHelp && (
+                  <HelpBox>
+                    <h4>So funktioniert die Wortanordnung:</h4>
+                    <p>1. Klicke auf ein Wort, um es auszuwählen (es wird hervorgehoben).</p>
+                    <p>2. Klicke dann auf ein anderes Wort, um die Position der beiden Wörter zu tauschen.</p>
+                    <p>3. Ordne alle Wörter in der richtigen Reihenfolge an, um einen korrekten deutschen Satz zu bilden.</p>
+                    <p>4. Klicke auf "Überprüfen", um deine Antwort zu kontrollieren.</p>
+                  </HelpBox>
+                )}
 
-               <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                 {!showAnswer ? (
-                   <ActionButton
-                     $primary
-                     onClick={() => {
-                       const isCorrect = currentWords.join(' ') === currentSentence.german;
-                       setShowAnswer(true);
-                       setFeedback(
-                         isCorrect
-                           ? 'Richtig! Super gemacht! 🎉'
-                           : `Noch nicht ganz richtig. Die richtige Antwort ist: ${currentSentence.german}`
-                       );
-                     }}
-                   >
-                     Überprüfen
-                   </ActionButton>
-                 ) : (
-                   <ActionButton
-                     $secondary
-                     onClick={() => {
-                       if (currentIndex < quizSentences.length - 1) {
-                         setCurrentIndex(currentIndex + 1);
-                         setCurrentWords(shuffleArray(quizSentences[currentIndex + 1].german.split(' ')));
-                         setShowAnswer(false);
-                         setFeedback('');
-                         setShowHint(false);
-                         setShowTranslations(false);
-                       } else {
-                         setMode('main');
-                         resetQuizState();
-                       }
-                     }}
-                   >
-                     {currentIndex < quizSentences.length - 1 ? 'Nächster Satz' : 'Quiz beenden'}
-                   </ActionButton>
-                 )}
-               </div>
+                {showHint && currentSentence.hint && (
+                  <Hint>
+                    <strong>Hinweis:</strong> {currentSentence.hint}
+                  </Hint>
+                )}
 
-               {feedback && (
-                 <Error style={{ 
-                   textAlign: 'center',
-                   background: feedback.includes('Richtig') 
-                     ? 'rgba(16, 185, 129, 0.1)' 
-                     : 'rgba(239, 68, 68, 0.1)',
-                   color: feedback.includes('Richtig') 
-                     ? '#10b981' 
-                     : '#ef4444'
-                 }}>
-                   {feedback}
-                 </Error>
-               )}
-             </>
-           )}
-         </QuizContainer>
-       );
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                  {!showAnswer ? (
+                    <ActionButton
+                      $primary
+                      onClick={() => {
+                        const isCorrect = currentWords.join(' ') === currentSentence.german;
+                        setShowAnswer(true);
+                        setFeedback(
+                          isCorrect
+                            ? 'Richtig! Super gemacht! 🎉'
+                            : `Noch nicht ganz richtig. Die richtige Antwort ist: ${currentSentence.german}`
+                        );
+                        if (isCorrect && onComplete) {
+                          onComplete();
+                        }
+                      }}
+                    >
+                      Überprüfen
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      $secondary
+                      onClick={() => {
+                        if (currentIndex < quizSentences.length - 1) {
+                          setCurrentIndex(currentIndex + 1);
+                          setCurrentWords(shuffleArray(quizSentences[currentIndex + 1].german.split(' ')));
+                          setShowAnswer(false);
+                          setFeedback('');
+                          setShowHint(false);
+                          setShowTranslations(false);
+                          setSelectedWordIndex(null); // Reset word selection
+                        } else {
+                          setMode('main');
+                          resetQuizState();
+                        }
+                      }}
+                    >
+                      {currentIndex < quizSentences.length - 1 ? 'Nächster Satz' : 'Quiz beenden'}
+                    </ActionButton>
+                  )}
+                </div>
 
-     default:
-       return (
-         <>
-           <ActionButtons>
-             <ActionButton $primary onClick={() => setMode('add')}>
-               Neuen Satz hinzufügen
-             </ActionButton>
-             <ActionButton $secondary onClick={() => setMode('categorySelect')}>
-               Quiz starten
-             </ActionButton>
-           </ActionButtons>
+                {feedback && (
+                  <Error style={{ 
+                    textAlign: 'center',
+                    background: feedback.includes('Richtig') 
+                      ? 'rgba(16, 185, 129, 0.1)' 
+                      : 'rgba(239, 68, 68, 0.1)',
+                    color: feedback.includes('Richtig') 
+                      ? '#10b981' 
+                      : '#ef4444'
+                  }}>
+                    {feedback}
+                  </Error>
+                )}
+              </>
+            )}
+          </QuizContainer>
+        );
 
-           <div>
-             {categories
-               .filter(cat => !cat.parentId)
-               .map(category => (
-                 <CategoryFolder
-                   key={category.id}
-                   category={category}
-                   categories={categories}
-                   sentences={sentences}
-                   onAddSubcategory={onAddCategory}
-                   onDeleteCategory={onDeleteCategory}
-                   onDeleteSentence={onDeleteSentence}
-                   selectedLanguages={selectedLanguages}
-                 />
-               ))}
-           </div>
-         </>
-       );
-   }
- };
+      default:
+        return (
+          <>
+            <ActionButtons>
+              <ActionButton $primary onClick={() => setMode('add')}>
+                Neuen Satz hinzufügen
+              </ActionButton>
+              <ActionButton $secondary onClick={() => setMode('categorySelect')}>
+                Quiz starten
+              </ActionButton>
+            </ActionButtons>
 
- return (
-   <Container>
-     <Title>Satz des Tages</Title>
-     {renderContent()}
-   </Container>
- );
+            <div>
+              {categories
+                .filter(cat => !cat.parentId)
+                .map(category => (
+                  <CategoryFolder
+                    key={category.id}
+                    category={category}
+                    categories={categories}
+                    sentences={sentences}
+                    onAddSubcategory={onAddCategory}
+                    onDeleteCategory={onDeleteCategory}
+                    onDeleteSentence={onDeleteSentence}
+                    selectedLanguages={selectedLanguages}
+                  />
+                ))}
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <Container>
+      <Title>Satz des Tages</Title>
+      {renderContent()}
+    </Container>
+  );
 }
 
 export default DailySentence;

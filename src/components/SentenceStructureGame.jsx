@@ -4,6 +4,14 @@ import styles from './SentenceStructureGame.module.css';
 import { Volume2, VolumeX } from 'lucide-react';
 import { SERVER_URL, isTauri } from '../utils/api';
 
+// Debugging-Hilfsfunktion
+const DEBUG = true;
+function debugLog(...args) {
+  if (DEBUG) {
+    console.log('[SentenceGame]', ...args);
+  }
+}
+
 // Language configuration
 const LANGUAGE_CONFIG = {
   english: { flag: '🇬🇧', name: 'Englisch' },
@@ -130,15 +138,57 @@ const AudioButton = ({ text, language }) => {
   );
 };
 
+// Verbesserte DraggableWord-Komponente mit robusten Drag-and-Drop-Handlern
 const DraggableWord = ({ word, index, onDragStart, onDrop }) => (
   <div
-    draggable
-    onDragStart={(e) => onDragStart(e, index)}
-    onDragOver={(e) => e.preventDefault()}
+    draggable="true"
+    onDragStart={(e) => {
+      debugLog('DragStart Event bei Wort:', word, 'Index:', index);
+      e.stopPropagation(); // Event-Bubbling verhindern
+      e.dataTransfer.effectAllowed = "move";
+      
+      // Stelle sicher, dass der Datentyp und die Daten korrekt gesetzt werden
+      try {
+        e.dataTransfer.setData('text/plain', index.toString());
+        debugLog('DragStart Daten gesetzt:', index.toString());
+      } catch (error) {
+        console.error('Fehler beim Setzen der Drag-Daten:', error);
+      }
+      
+      onDragStart(e, index);
+    }}
+    onDragOver={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = "move";
+    }}
+    onDragEnter={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      debugLog('DragEnter auf Wort:', word);
+    }}
+    onDragEnd={(e) => {
+      debugLog('DragEnd Event für Wort:', word);
+    }}
     onDrop={(e) => {
       e.preventDefault();
-      const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
-      onDrop(draggedIndex, index);
+      e.stopPropagation();
+      debugLog('Drop Event auf Wort:', word, 'Index:', index);
+      
+      try {
+        const data = e.dataTransfer.getData('text/plain');
+        debugLog('Drop Daten erhalten:', data);
+        const draggedIndex = parseInt(data);
+        
+        if (!isNaN(draggedIndex)) {
+          debugLog('Tausche Index', draggedIndex, 'mit Index', index);
+          onDrop(draggedIndex, index);
+        } else {
+          console.error('Ungültiger Drag-Index:', data);
+        }
+      } catch (error) {
+        console.error('Fehler während des Drop-Handlings:', error);
+      }
     }}
     className={styles['draggable-word']}
   >
@@ -146,6 +196,18 @@ const DraggableWord = ({ word, index, onDragStart, onDrop }) => (
   </div>
 );
 
+// Alternative klickbasierte Implementierung (als Fallback)
+const ClickableWord = ({ word, index, isSelected, onSelect }) => (
+  <div
+    className={`${styles['draggable-word']} ${isSelected ? styles['selected-word'] : ''}`}
+    onClick={() => onSelect(index)}
+  >
+    {word}
+  </div>
+);
+
+
+// Ändere diese Zeilen in der SentenceStructureGame-Komponente:
 const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete }) => {
   const [showTranslations, setShowTranslations] = useState(false);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
@@ -153,6 +215,11 @@ const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete })
   const [feedback, setFeedback] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [currentSentences, setCurrentSentences] = useState([]);
+  
+  // Aktiviere immer den Fallback-Modus in Tauri
+  const [useDragFallback, setUseDragFallback] = useState(true); // Direkt auf true setzen
+  const [selectedWordIndex, setSelectedWordIndex] = useState(null);
+  const [dragDropFailed, setDragDropFailed] = useState(true); // Direkt auf true setzen
 
   useEffect(() => {
     const levelSentences = sentences[level];
@@ -165,6 +232,30 @@ const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete })
       }
     }
   }, [level]);
+
+  // Füge einen Timer hinzu, um den Drag-and-Drop-Status nach 5 Sekunden zu überprüfen
+  useEffect(() => {
+    const dragTestTimeout = setTimeout(() => {
+      if (!dragDropFailed) {
+        const testDrag = () => {
+          debugLog('Führe Drag & Drop-Test durch...');
+          try {
+            const dt = new DataTransfer();
+            if (typeof dt.setData !== 'function') {
+              debugLog('DataTransfer.setData nicht verfügbar, aktiviere Fallback-UI');
+              setUseDragFallback(true);
+            }
+          } catch (error) {
+            debugLog('Drag & Drop-Test fehlgeschlagen, aktiviere Fallback-UI:', error);
+            setUseDragFallback(true);
+          }
+        };
+        testDrag();
+      }
+    }, 5000);  // 5 Sekunden warten
+
+    return () => clearTimeout(dragTestTimeout);
+  }, [dragDropFailed]);
 
   const shuffleArray = (array) => {
     return [...array].sort(() => Math.random() - 0.5);
@@ -197,9 +288,20 @@ const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete })
   };
 
   const swapWords = (index1, index2) => {
+    debugLog('Tausche Wörter', index1, index2);
     const newWords = [...currentWords];
     [newWords[index1], newWords[index2]] = [newWords[index2], newWords[index1]];
     setCurrentWords(newWords);
+  };
+
+  // Für die alternative klickbasierte Implementierung
+  const handleWordClick = (index) => {
+    if (selectedWordIndex === null) {
+      setSelectedWordIndex(index);
+    } else {
+      swapWords(selectedWordIndex, index);
+      setSelectedWordIndex(null);
+    }
   };
 
   if (!currentSentences || currentSentences.length === 0) {
@@ -207,6 +309,17 @@ const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete })
   }
 
   const currentSentence = currentSentences[currentSentenceIndex];
+
+  // Funktionen für Debug-Logging
+  const handleDragStartLog = (e, index) => {
+    debugLog(`DragStart für Wort: ${currentWords[index]} (Index: ${index})`);
+  };
+
+  const handleDragDropFailure = () => {
+    debugLog('Drag & Drop fehlgeschlagen, aktiviere Fallback-UI');
+    setDragDropFailed(true);
+    setUseDragFallback(true);
+  };
 
   return (
     <div className={styles['game-container']}>
@@ -216,17 +329,45 @@ const SentenceStructureGame = ({ level, onBack, selectedLanguages, onComplete })
 
       <div className={styles['drag-drop-area']}>
         <div className={styles['word-container']}>
-          {currentWords.map((word, index) => (
-            <DraggableWord
-              key={index}
-              word={word}
-              index={index}
-              onDragStart={(e, i) => e.dataTransfer.setData('text/plain', i.toString())}
-              onDrop={(draggedIndex, droppedIndex) => swapWords(draggedIndex, droppedIndex)}
-            />
-          ))}
+          {useDragFallback ? (
+            // Alternative klickbasierte UI
+            currentWords.map((word, index) => (
+              <ClickableWord
+                key={index}
+                word={word}
+                index={index}
+                isSelected={selectedWordIndex === index}
+                onSelect={handleWordClick}
+              />
+            ))
+          ) : (
+            // Standard Drag & Drop UI
+            currentWords.map((word, index) => (
+              <DraggableWord
+                key={index}
+                word={word}
+                index={index}
+                onDragStart={handleDragStartLog}
+                onDrop={(draggedIndex, droppedIndex) => {
+                  try {
+                    swapWords(draggedIndex, droppedIndex);
+                  } catch (error) {
+                    console.error('Fehler beim Tauschen der Wörter:', error);
+                    handleDragDropFailure();
+                  }
+                }}
+              />
+            ))
+          )}
         </div>
       </div>
+
+      {/* Feedback für Drag & Drop Status */}
+      {useDragFallback && (
+        <div className={styles['hint']}>
+          <strong>Hinweis:</strong> Klicke auf ein Wort, um es auszuwählen, und dann auf ein anderes Wort, um die Position zu tauschen.
+        </div>
+      )}
 
       {showTranslations && (
         <div className={styles['translation-container']}>

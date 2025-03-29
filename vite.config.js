@@ -28,9 +28,19 @@ export default defineConfig({
     // Sorge für ein sauberes Build-Ergebnis
     sourcemap: true,
     rollupOptions: {
+      // Hier die externe Abhängigkeit für Tauri APIs hinzufügen
+      external: [
+        '@tauri-apps/api/tauri',
+        '@tauri-apps/api/fs',
+        '@tauri-apps/api/window',
+        '@tauri-apps/api/dialog'
+      ],
       output: {
         manualChunks: undefined
       }
     }
+  },
+  optimizeDeps: {
+    exclude: ['@tauri-apps/api']
   }
 });

@@ -1,15 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { verbData, verbTemplate } from '../data/verbData';
 import './VerbEndings.css';
 import AudioButton from './AudioButton';
-import { useGameSave } from '../contexts/GameSaveContext'; // GameSave-Context importieren
+import { useGameSave } from '../contexts/GameSaveContext';
+
+// Debugging-Hilfsfunktion
+const DEBUG = true;
+function debugLog(...args) {
+  if (DEBUG) {
+    console.log('[VerbEndings]', ...args);
+  }
+}
 
 function VerbEndings({ onBack, selectedLanguages, onComplete }) {
-  const { saveGameState, loadGameState } = useGameSave(); // GameSave-Context verwenden
+  const { saveGameState, loadGameState } = useGameSave();
   const [mode, setMode] = useState('select');
   const [gameVerbs, setGameVerbs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [customVerbs, setCustomVerbs] = useState([]);
+  
+  // Aktiviere immer den Fallback-Modus in Tauri
+  const [useDragFallback, setUseDragFallback] = useState(true); // Direkt auf true setzen
+  const [dragDropFailed, setDragDropFailed] = useState(true); 
 
   // Language configuration for all supported languages
   const languageConfig = {
@@ -52,6 +64,30 @@ function VerbEndings({ onBack, selectedLanguages, onComplete }) {
     
     loadData();
   }, [loadGameState]);
+
+  // Füge einen Timer hinzu, um den Drag-and-Drop-Status zu testen
+  useEffect(() => {
+    const dragTestTimeout = setTimeout(() => {
+      if (!dragDropFailed) {
+        const testDrag = () => {
+          debugLog('Führe Drag & Drop-Test durch...');
+          try {
+            const dt = new DataTransfer();
+            if (typeof dt.setData !== 'function') {
+              debugLog('DataTransfer.setData nicht verfügbar, aktiviere Fallback-UI');
+              setUseDragFallback(true);
+            }
+          } catch (error) {
+            debugLog('Drag & Drop-Test fehlgeschlagen, aktiviere Fallback-UI:', error);
+            setUseDragFallback(true);
+          }
+        };
+        testDrag();
+      }
+    }, 5000);  // 5 Sekunden warten
+
+    return () => clearTimeout(dragTestTimeout);
+  }, [dragDropFailed]);
 
   const handleDeleteCategory = (categoryId) => {
     const getSubcategories = (catId) => {
@@ -285,17 +321,19 @@ function VerbEndings({ onBack, selectedLanguages, onComplete }) {
     );
   };
 
-  // Game Component - Vollständig überarbeitete Version
+  // Game Component - Verbesserte Version mit Drag & Drop und Fallback
   const VerbEndingsGame = ({ verbs, onBack, selectedLanguages, onComplete }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState(Array(6).fill(''));
     const [showFeedback, setShowFeedback] = useState(false);
     const [verbCompleted, setVerbCompleted] = useState(false);
-    // Verbesserte Zustandsverwaltung
-    const [completedVerbs, setCompletedVerbs] = useState(new Set()); // Speichert abgeschlossene Verben
-    const [usedIndices, setUsedIndices] = useState([0]); // Speichert besuchte Indizes für die Zurück-Funktion
-    const [verbQueue, setVerbQueue] = useState([]); // Warteschlange für Verben
-    const [xpAwarded, setXpAwarded] = useState(false); // Verhindert mehrfache XP-Vergabe 
+    const [completedVerbs, setCompletedVerbs] = useState(new Set());
+    const [usedIndices, setUsedIndices] = useState([0]);
+    const [verbQueue, setVerbQueue] = useState([]);
+    const [xpAwarded, setXpAwarded] = useState(false);
+    
+    // Für klickbasierte Alternative
+    const [selectedEndingIndex, setSelectedEndingIndex] = useState(null);
     
     const pronouns = ["Ich", "Du", "Er/Sie/Es", "Wir", "Ihr", "Sie"];
     const stemKeys = ["ich", "du", "er", "wir", "ihr", "sie"];
@@ -369,16 +407,59 @@ function VerbEndings({ onBack, selectedLanguages, onComplete }) {
       );
     }
 
+    // Verbesserte Drag & Drop Funktionalität mit Fehlerbehandlung
     const handleDrop = (e, index) => {
       e.preventDefault();
-      const ending = e.dataTransfer.getData('text/plain');
-      const newAnswers = [...userAnswers];
-      newAnswers[index] = ending;
-      setUserAnswers(newAnswers);
+      e.stopPropagation();
       
-      // Wenn bereits Feedback angezeigt wird, aktualisieren wir den Zustand um ein Neuladen auszulösen
+      debugLog('Drop Event auf Position:', index);
+      
+      try {
+        const ending = e.dataTransfer.getData('text/plain');
+        debugLog('Erhaltene Daten:', ending);
+        
+        if (ending) {
+          const newAnswers = [...userAnswers];
+          newAnswers[index] = ending;
+          setUserAnswers(newAnswers);
+          
+          // Wenn bereits Feedback angezeigt wird, aktualisieren wir den Zustand
+          if (showFeedback) {
+            // Trick, um ein Neuladen zu erzwingen
+            setShowFeedback(false);
+            setTimeout(() => setShowFeedback(true), 10);
+          }
+        } else {
+          console.error('Keine Daten im Drop-Event erhalten');
+        }
+      } catch (error) {
+        console.error('Fehler beim Verarbeiten des Drop-Events:', error);
+        setDragDropFailed(true);
+        setUseDragFallback(true);
+      }
+    };
+
+    // Für die klickbasierte Alternative
+    const handleEndingClick = (ending) => {
+      if (selectedEndingIndex === ending) {
+        // Abwählen, wenn bereits ausgewählt
+        setSelectedEndingIndex(null);
+      } else {
+        // Auswählen
+        setSelectedEndingIndex(ending);
+      }
+    };
+    
+    const handleDropzoneClick = (index) => {
+      if (selectedEndingIndex === null) return;
+      
+      const newAnswers = [...userAnswers];
+      newAnswers[index] = currentVerb.endings[selectedEndingIndex];
+      setUserAnswers(newAnswers);
+      setSelectedEndingIndex(null);
+      
+      // Wenn bereits Feedback angezeigt wird, aktualisieren
       if (showFeedback) {
-        // Trick, um ein Neuladen zu erzwingen
         setShowFeedback(false);
         setTimeout(() => setShowFeedback(true), 10);
       }
@@ -482,6 +563,22 @@ function VerbEndings({ onBack, selectedLanguages, onComplete }) {
       }
     };
 
+    // Funktion, um mit der DataTransfer API zu testen, ob Drag & Drop funktioniert
+    const handleDragStart = (e, ending) => {
+      debugLog('DragStart Event für Endung:', ending);
+      e.stopPropagation();
+      
+      try {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData('text/plain', ending);
+        debugLog('Drag-Daten gesetzt:', ending);
+      } catch (error) {
+        console.error('Fehler beim Setzen der Drag-Daten:', error);
+        setDragDropFailed(true);
+        setUseDragFallback(true);
+      }
+    };
+
     return (
       <div className="verb-endings-container">
         <h2 className="verb-endings-title">Verbendungen lernen</h2>
@@ -520,34 +617,83 @@ function VerbEndings({ onBack, selectedLanguages, onComplete }) {
                     language="🇩🇪"
                   />
                 </div>
-                <div
-                  className={`verb-ending-dropzone ${
-                    showFeedback
-                      ? userAnswers[index] === currentVerb.endings[index]
-                        ? 'correct'
-                        : 'incorrect'
-                      : ''
-                  }`}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleDrop(e, index)}
-                >
-                  {userAnswers[index] && `-${userAnswers[index]}`}
-                </div>
+                {useDragFallback ? (
+                  // Klickbare Alternative
+                  <div
+                    className={`verb-ending-dropzone ${
+                      showFeedback
+                        ? userAnswers[index] === currentVerb.endings[index]
+                          ? 'correct'
+                          : 'incorrect'
+                        : ''
+                    } ${selectedEndingIndex !== null ? 'selectable' : ''}`}
+                    onClick={() => handleDropzoneClick(index)}
+                  >
+                    {userAnswers[index] && `-${userAnswers[index]}`}
+                  </div>
+                ) : (
+                  // Standard Drag & Drop
+                  <div
+                    className={`verb-ending-dropzone ${
+                      showFeedback
+                        ? userAnswers[index] === currentVerb.endings[index]
+                          ? 'correct'
+                          : 'incorrect'
+                        : ''
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      debugLog('DragEnter auf Position:', index);
+                    }}
+                    onDrop={(e) => handleDrop(e, index)}
+                  >
+                    {userAnswers[index] && `-${userAnswers[index]}`}
+                  </div>
+                )}
               </div>
             ))}
           </div>
+
           <div className="verb-endings-pool">
             {currentVerb.endings.map((ending, index) => (
-              <div
-                key={index}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData('text/plain', ending)}
-                className="draggable-ending"
-              >
-                -{ending}
-              </div>
+              useDragFallback ? (
+                // Klickbare Alternative
+                <div
+                  key={index}
+                  className={`verb-ending clickable ${selectedEndingIndex === index ? 'selected' : ''}`}
+                  onClick={() => handleEndingClick(index)}
+                >
+                  -{ending}
+                </div>
+              ) : (
+                // Standard Drag & Drop
+                <div
+                  key={index}
+                  draggable="true"
+                  onDragStart={(e) => handleDragStart(e, ending)}
+                  onDragEnd={(e) => {
+                    debugLog('DragEnd Event für Endung:', ending);
+                  }}
+                  className="draggable-ending"
+                >
+                  -{ending}
+                </div>
+              )
             ))}
           </div>
+
+          {/* Fallback-Modus Info */}
+          {useDragFallback && (
+            <div className="fallback-info">
+              <p>Klicke auf eine Endung und dann auf die Position, wo du sie platzieren möchtest.</p>
+            </div>
+          )}
 
           <div className="verb-nav-buttons">
             <button

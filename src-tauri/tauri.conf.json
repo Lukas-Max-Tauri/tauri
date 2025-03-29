@@ -15,13 +15,30 @@
       "scope": [
         "https://us-central1-daz-connect.cloudfunctions.net/backend/*", 
         "https://us-central1-daz-connect.cloudfunctions.net/*",
+        "https://backend-6bu6t6ce2a-uc.a.run.app/*",
         "http://localhost:*",
         "https://texttospeech.googleapis.com/*",
         "https://daz-connect.web.app/*",
-        "https://daz-connect.firebaseapp.com/*"
+        "https://daz-connect.firebaseapp.com/*",
+        "https://*.googleapis.com/*",
+        "https://identitytoolkit.googleapis.com/*",
+        "https://securetoken.googleapis.com/*",
+        "https://firestore.googleapis.com/*",
+        "https://*.firebaseio.com/*",
+        "wss://*.firebaseio.com/*",
+        "https://*.firebase.googleapis.com/*"
       ]
     },
-    "shell": {}
+    "shell": {},
+    "dialog": {
+      "all": true
+    },
+    "window": {
+      "all": true
+    },
+    "fs": {
+      "scope": ["$DOCUMENT/*", "$APP/*", "$DESKTOP/*", "$TEMP/*", "**/*.log"]
+    }
   },
   "app": {
     "windows": [
@@ -30,12 +47,15 @@
         "width": 800,
         "height": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "center": true,
+        "focus": true
       }
     ],
     "security": {
-      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://texttospeech.googleapis.com https://us-central1-daz-connect.cloudfunctions.net https://us-central1-daz-connect.cloudfunctions.net/backend/* http://localhost:*; media-src 'self' blob:; audio-src 'self' blob:; img-src 'self' data:"
-    }
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://backend-6bu6t6ce2a-uc.a.run.app https://backend-6bu6t6ce2a-uc.a.run.app/* https://texttospeech.googleapis.com https://us-central1-daz-connect.cloudfunctions.net https://us-central1-daz-connect.cloudfunctions.net/backend/* http://localhost:* https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com wss://*.firebaseio.com https://*.firebaseio.com https://*.firebase.googleapis.com; media-src 'self' blob: data:; audio-src 'self' blob: data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'"
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,
