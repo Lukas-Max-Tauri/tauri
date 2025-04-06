@@ -247,6 +247,20 @@ const MainAppContent = () => {
   // Neue State-Variable für API-Authentifizierung
   const [apiAuthenticated, setApiAuthenticated] = useState(false);
 
+  // Session-Tracking für Level-Up-Dialog
+  const [sessionData, setSessionData] = useState(() => {
+    const savedSession = localStorage.getItem('learningSession');
+    return savedSession ? JSON.parse(savedSession) : { 
+      sessionStartTime: Date.now(),
+      hasShownLevelUpThisSession: false
+    };
+  });
+  
+  // Speichere Session-Daten, wenn sie sich ändern
+  useEffect(() => {
+    localStorage.setItem('learningSession', JSON.stringify(sessionData));
+  }, [sessionData]);
+
   // Überprüfe einmalig bei Initialisierung, ob ein gültiges Token existiert
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -391,58 +405,68 @@ const MainAppContent = () => {
   };
 
   // Word Result Handler - VERBESSERTE VERSION
-  const handleWordResult = (word, isCorrect, source) => {
-    if (!isCorrect) {
-      // Stelle sicher, dass die Quelle (source) richtig gesetzt ist
-      const sourceValue = source || word.source || 'unknown';
-      
-      // Konsistenten Schlüssel erstellen
-      const wordKey = `${word.german}-${word.category || 'learn'}`;
+// Word Result Handler - VERBESSERTE VERSION
+const handleWordResult = (word, isCorrect, thirdParam) => {
+  // Parameter korrekt auslesen - thirdParam könnte entweder isFirstCorrect (boolean) oder source (string) sein
+  let sourceValue;
+  
+  if (typeof thirdParam === 'boolean') {
+    // Wenn der dritte Parameter ein Boolean ist, dann ist es isFirstCorrect
+    sourceValue = word.source || 'unknown';
+  } else {
+    // Wenn der dritte Parameter kein Boolean ist, dann ist es die Quelle (source)
+    sourceValue = thirdParam || word.source || 'unknown';
+  }
+
+  if (!isCorrect) {
+    // Konsistenten Schlüssel erstellen
+    const wordKey = `${word.german}-${word.category || 'learn'}`;
+    const existingWord = difficultWords[wordKey];
+    
+    const updatedDifficultWords = {
+      ...difficultWords,
+      [wordKey]: {
+        word: word,
+        source: sourceValue,
+        failCount: (existingWord?.failCount || 0) + 1,
+        wrongCount: (existingWord?.wrongCount || 0) + 1,
+        lastFailed: new Date().toISOString(),
+        correctCount: existingWord?.correctCount || 0
+      }
+    };
+    
+    setDifficultWords(updatedDifficultWords);
+    localStorage.setItem('difficultWords', JSON.stringify(updatedDifficultWords));
+  } else {
+    // Bei einer korrekten Antwort immer Punkte geben, unabhängig vom dritten Parameter
+    handleMissionComplete('gelernt');
+    
+    // Bei korrekter Antwort den richtigen Schlüssel finden
+    const wordKey = `${word.german}-${word.category || 'learn'}`;
+    
+    if (difficultWords[wordKey]) {
       const existingWord = difficultWords[wordKey];
       
-      const updatedDifficultWords = {
-        ...difficultWords,
-        [wordKey]: {
-          word: word,
-          source: sourceValue,
-          failCount: (existingWord?.failCount || 0) + 1,
-          wrongCount: (existingWord?.wrongCount || 0) + 1, // Beide Zähler aktualisieren
-          lastFailed: new Date().toISOString(),
-          correctCount: existingWord?.correctCount || 0
-        }
-      };
-      
-      setDifficultWords(updatedDifficultWords);
-      localStorage.setItem('difficultWords', JSON.stringify(updatedDifficultWords));
-    } else {
-      handleMissionComplete('gelernt');
-      
-      // Bei korrekter Antwort den richtigen Schlüssel finden
-      const wordKey = `${word.german}-${word.category || 'learn'}`;
-      
-      if (difficultWords[wordKey]) {
-        const existingWord = difficultWords[wordKey];
-        
-        if (existingWord.correctCount >= 2) {
-          // Wort aus der Liste entfernen, wenn es 3x richtig beantwortet wurde
-          const { [wordKey]: removed, ...rest } = difficultWords;
-          setDifficultWords(rest);
-          localStorage.setItem('difficultWords', JSON.stringify(rest));
-        } else {
-          // Zähler für korrekte Antworten erhöhen
-          const updatedDifficultWords = {
-            ...difficultWords,
-            [wordKey]: {
-              ...existingWord,
-              correctCount: (existingWord.correctCount || 0) + 1
-            }
-          };
-          setDifficultWords(updatedDifficultWords);
-          localStorage.setItem('difficultWords', JSON.stringify(updatedDifficultWords));
-        }
+      if (existingWord.correctCount >= 2) {
+        // Wort aus der Liste entfernen, wenn es 3x richtig beantwortet wurde
+        const { [wordKey]: removed, ...rest } = difficultWords;
+        setDifficultWords(rest);
+        localStorage.setItem('difficultWords', JSON.stringify(rest));
+      } else {
+        // Zähler für korrekte Antworten erhöhen
+        const updatedDifficultWords = {
+          ...difficultWords,
+          [wordKey]: {
+            ...existingWord,
+            correctCount: (existingWord.correctCount || 0) + 1
+          }
+        };
+        setDifficultWords(updatedDifficultWords);
+        localStorage.setItem('difficultWords', JSON.stringify(updatedDifficultWords));
       }
     }
-  };
+  }
+};
 
   // Auth Effect: Load user data when authenticated
   useEffect(() => {
@@ -620,409 +644,415 @@ const MainAppContent = () => {
     }
   }, [missionsFortschritt, isAuthenticated, apiAuthenticated]);
 
-  // Verbesserte handleMissionComplete mit besserer Fehlerbehandlung
-  // Verbesserte handleMissionComplete mit optionalem Level-Up-Dialog
-const handleMissionComplete = async (missionsTyp, anzahl = 1, showLevelUpPopup = true) => {
-  const neuerFortschritt = {
-    ...missionsFortschritt,
-    [missionsTyp]: missionsFortschritt[missionsTyp] + anzahl,
-    gesamtPunkte: missionsFortschritt.gesamtPunkte + (anzahl * 10)
-  };
-
-  // Berechne das neue Level
-  const newLevel = Math.floor(neuerFortschritt.gesamtPunkte / 100) + 1;
+  const handleMissionComplete = async (missionsTyp, anzahl = 1, showLevelUpPopup = true) => {
+    const neuerFortschritt = {
+      ...missionsFortschritt,
+      [missionsTyp]: missionsFortschritt[missionsTyp] + anzahl,
+      gesamtPunkte: missionsFortschritt.gesamtPunkte + (anzahl * 10)
+    };
   
-  // Level-Up nur anzeigen, wenn:
-  // 1. Ein Level-Up stattgefunden hat
-  // 2. showLevelUpPopup auf true gesetzt ist
-  if (newLevel > currentLevel && showLevelUpPopup) {
-    setCurrentLevel(newLevel);
-    setShowLevelUp(true);
-  } else {
-    // Auch bei Level-Up ohne Popup das aktuelle Level aktualisieren
-    if (newLevel > currentLevel) {
+    // Berechne das neue Level
+    const newLevel = Math.floor(neuerFortschritt.gesamtPunkte / 100) + 1;
+    
+    // Level-Up nur anzeigen, wenn:
+    // 1. Ein Level-Up stattgefunden hat
+    // 2. showLevelUpPopup auf true gesetzt ist
+    // 3. In dieser Sitzung noch kein Level-Up angezeigt wurde
+    if (newLevel > currentLevel && showLevelUpPopup && !sessionData.hasShownLevelUpThisSession) {
       setCurrentLevel(newLevel);
-    }
-  }
-
-  setMissionsFortschritt(neuerFortschritt);
-
-  if (isAuthenticated && apiAuthenticated) {
-    try {
-      const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          progress: {
-            missions: {
-              erstellt: neuerFortschritt.erstellt,
-              gelernt: neuerFortschritt.gelernt,
-              verben: neuerFortschritt.verben
-            },
-            gesamtPunkte: neuerFortschritt.gesamtPunkte
-          }
-        })
-      });
+      setShowLevelUp(true);
       
-      // Prüfen, ob das Ergebnis einen Authentifizierungsfehler enthält
-      if (result && result.authError) {
-        setApiAuthenticated(false);
-        console.log('Fortschritt lokal aktualisiert, aber nicht mit Server synchronisiert');
+      // Markiere, dass in dieser Sitzung ein Level-Up angezeigt wurde
+      setSessionData(prev => ({
+        ...prev,
+        hasShownLevelUpThisSession: true
+      }));
+    } else {
+      // Auch bei Level-Up ohne Popup das aktuelle Level aktualisieren
+      if (newLevel > currentLevel) {
+        setCurrentLevel(newLevel);
       }
-    } catch (error) {
-      setApiAuthenticated(false);
-      console.error('Fehler beim Aktualisieren des Missions-Fortschritts:', error);
     }
-  } else if (isAuthenticated) {
-    console.log('API nicht authentifiziert - überspringe Server-Synchronisation');
-  }
-};
 
-  // Language Toggle Handler - MIT VERBESSERTER FEHLERBEHANDLUNG
-  const handleLanguageToggle = async (language) => {
-    const newSelection = selectedLanguages.includes(language)
-      ? selectedLanguages.filter(l => l !== language)
-      : [...selectedLanguages, language];
-    
-    if (newSelection.length === 0) return;
-    
-    setSelectedLanguages(newSelection);
-  
+    setMissionsFortschritt(neuerFortschritt);
+
     if (isAuthenticated && apiAuthenticated) {
       try {
-        const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5053';
+        
+        const result = await fetchWithClient(`${API_URL}/api/auth/me`, {
           method: 'PATCH',
           body: JSON.stringify({
-            selectedLanguages: newSelection
+            progress: {
+              missions: {
+                erstellt: neuerFortschritt.erstellt,
+                gelernt: neuerFortschritt.gelernt,
+                verben: neuerFortschritt.verben
+              },
+              gesamtPunkte: neuerFortschritt.gesamtPunkte
+            }
           })
         });
-        
-        // Prüfen, ob das Ergebnis einen Authentifizierungsfehler enthält
-        if (result && result.authError) {
-          setApiAuthenticated(false);
-          console.log('Sprachenauswahl lokal aktualisiert, aber nicht mit Server synchronisiert');
-        }
-      } catch (error) {
-        setApiAuthenticated(false);
-        console.log('Fehler beim Aktualisieren der Sprachenauswahl:', error.message);
-      }
-    } else if (isAuthenticated) {
-      console.log('API nicht authentifiziert - überspringe Server-Synchronisation');
-    }
-  };
-
-  // Navigation Handlers
-  const handleBack = () => {
-    setCurrentView('main');
-    setActiveSubmenu(null);
-    setSentenceLevel(null);
-  };
-
-  const handleVocabMenuSelect = (option) => {
-    const viewMapping = {
-      'daily': 'dailyWord',
-      'learn': 'learnVocab',
-      'difficult': 'difficultWords'
-    };
-    
-    setActiveSubmenu(option);
-    setCurrentView(viewMapping[option]);
-  };
-
-  const handleReturnToVocabMenu = () => {
-    setCurrentView('learn');
-    setActiveSubmenu(null);
-  };
-
-  if (loading) {
-    return <S.LoadingSpinner>Laden...</S.LoadingSpinner>;
-  }
-
-  return (
-    <S.AppContainer>
-      <S.StarsBackground />
       
-      <S.MainContent>
-        <S.Card>
-          {currentView === 'main' ? (
-            <>
-              <LevelHeader 
-                user={user} 
-                missionProgress={{
-                  vokabeln: missionsFortschritt.gelernt,
-                  satzbau: missionsFortschritt.erstellt,
-                  verben: missionsFortschritt.verben,
-                  totalScore: missionsFortschritt.gesamtPunkte
-                }}
-                logout={logout}
-                onProfileClick={() => setCurrentView('profile')}
-              />
+    // Prüfen, ob das Ergebnis einen Authentifizierungsfehler enthält
+if (result && result.authError) {
+  setApiAuthenticated(false);
+  console.log('Fortschritt lokal aktualisiert, aber nicht mit Server synchronisiert');
+}
+} catch (error) {
+  setApiAuthenticated(false);
+  console.error('Fehler beim Aktualisieren des Missions-Fortschritts:', error);
+}
+} else if (isAuthenticated) {
+console.log('API nicht authentifiziert - überspringe Server-Synchronisation');
+}
+};
 
-              <S.ContentSection>
-                <LanguageFilter
-                  selectedLanguages={selectedLanguages}
-                  onLanguageToggle={handleLanguageToggle}
-                />
-                
-                <S.MissionGroup>
-                  <S.MissionButton onClick={() => setCurrentView('learn')}>
-                    <S.MissionContent>
-                      <S.PlanetIcon>🌍</S.PlanetIcon>
-                      <S.MissionInfo>
-                        <S.MissionTitle>Vokabel-Training</S.MissionTitle>
-                        <S.MissionDescription>Neue Wörter und Übungen</S.MissionDescription>
-                      </S.MissionInfo>
-                    </S.MissionContent>
-                  </S.MissionButton>
+// Language Toggle Handler - MIT VERBESSERTER FEHLERBEHANDLUNG
+const handleLanguageToggle = async (language) => {
+const newSelection = selectedLanguages.includes(language)
+? selectedLanguages.filter(l => l !== language)
+: [...selectedLanguages, language];
 
-                  <S.MissionButton onClick={() => setCurrentView('sentence')}>
-                    <S.MissionContent>
-                      <S.PlanetIcon>🌌</S.PlanetIcon>
-                      <S.MissionInfo>
-                        <S.MissionTitle>Satzstruktur</S.MissionTitle>
-                        <S.MissionDescription>Grammatik und Satzbau</S.MissionDescription>
-                      </S.MissionInfo>
-                    </S.MissionContent>
-                  </S.MissionButton>
+if (newSelection.length === 0) return;
 
-                  <S.MissionButton onClick={() => setCurrentView('verbEndings')}>
-                    <S.MissionContent>
-                      <S.PlanetIcon>🌠</S.PlanetIcon>
-                      <S.MissionInfo>
-                        <S.MissionTitle>Verb-Training</S.MissionTitle>
-                        <S.MissionDescription>Verben und Konjugationen</S.MissionDescription>
-                      </S.MissionInfo>
-                    </S.MissionContent>
-                  </S.MissionButton>
-                  
-                  {/* Option für Spielstand-Synchronisation */}
-                  <S.MissionButton onClick={() => setCurrentView('savesync')}>
-                    <S.MissionContent>
-                      <S.PlanetIcon>💾</S.PlanetIcon>
-                      <S.MissionInfo>
-                        <S.MissionTitle>Spielstände</S.MissionTitle>
-                        <S.MissionDescription>Synchronisieren und verwalten</S.MissionDescription>
-                      </S.MissionInfo>
-                    </S.MissionContent>
-                  </S.MissionButton>
-                </S.MissionGroup>
+setSelectedLanguages(newSelection);
 
-                <S.ProgressSection>
-                  <S.ProgressTitle>
-                    <span>📡</span> Missions-Fortschritt
-                  </S.ProgressTitle>
-                  
-                  {/* Direkt eingefügter Fortschritt ohne externe Komponenten */}
-                  <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
-                      <span style={{ color: '#93c5fd' }}>🧠 Wörter gelernt</span>
-                      <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.gelernt}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
-                      <span style={{ color: '#93c5fd' }}>📝 Erstellte Elemente</span>
-                      <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.erstellt}</span>
-                    </div>
-                   
-                    <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
-                      <span style={{ color: '#93c5fd' }}>🏆 Gesamt-Punkte</span>
-                      <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.gesamtPunkte}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Online/Offline Status-Anzeige */}
-                  <div style={{ marginTop: '15px', fontSize: '12px', textAlign: 'center', color: '#93c5fd' }}>
-                    {isOnline ? '🌐 Online' : '📵 Offline'} • 
-                    Sync: {syncStatus === 'synced' ? '✅' : 
-                            syncStatus === 'syncing' ? '🔄' : 
-                            syncStatus === 'error' ? '❌' : '⏳'}
-                  </div>
-                </S.ProgressSection>
-              </S.ContentSection>
-            </>
-          ) : (
-            <>
-              <S.SubHeader>
-                <S.BackButton onClick={handleBack}>
-                  <span>←</span> Zurück zur Kommandozentrale
-                </S.BackButton>
-                <S.SubTitle>
-                  {currentView === 'learn' && 'Vokabel-Training'}
-                  {currentView === 'learnVocab' && 'Vokabeln lernen'}
-                  {currentView === 'dailyWord' && 'Wort des Tages'}
-                  {currentView === 'difficultWords' && 'Schwierige Wörter'}
-                  {currentView === 'sentence' && 'Satzstruktur'}
-                  {currentView === 'sentenceStructure' && 'Satzstruktur lernen'}
-                  {currentView === 'dailySentence' && 'Satz des Tages'}
-                  {currentView === 'verbEndings' && 'Verb-Training'}
-                  {currentView === 'savesync' && 'Spielstände verwalten'}
-                </S.SubTitle>
-              </S.SubHeader>
+if (isAuthenticated && apiAuthenticated) {
+try {
+  const result = await fetchWithClient(`${SERVER_URL}/api/auth/me`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      selectedLanguages: newSelection
+    })
+  });
+  
+  // Prüfen, ob das Ergebnis einen Authentifizierungsfehler enthält
+  if (result && result.authError) {
+    setApiAuthenticated(false);
+    console.log('Sprachenauswahl lokal aktualisiert, aber nicht mit Server synchronisiert');
+  }
+} catch (error) {
+  setApiAuthenticated(false);
+  console.log('Fehler beim Aktualisieren der Sprachenauswahl:', error.message);
+}
+} else if (isAuthenticated) {
+console.log('API nicht authentifiziert - überspringe Server-Synchronisation');
+}
+};
 
-              <S.SubContent>
-                {currentView === 'learn' && !activeSubmenu && (
-                  <VocabMenu onSelectOption={handleVocabMenuSelect} />
-                )}
+// Navigation Handlers
+const handleBack = () => {
+setCurrentView('main');
+setActiveSubmenu(null);
+setSentenceLevel(null);
+};
 
-                {currentView === 'learnVocab' && (
-                  <LearnGerman 
-                    selectedLanguages={selectedLanguages}
-                    onComplete={() => handleMissionComplete('gelernt')}
-                    onBack={handleReturnToVocabMenu}
-                    onWordResult={handleWordResult}
-                  />
-                )}
+const handleVocabMenuSelect = (option) => {
+const viewMapping = {
+'daily': 'dailyWord',
+'learn': 'learnVocab',
+'difficult': 'difficultWords'
+};
 
-                {currentView === 'dailyWord' && (
-                  <DailyWordView
-                    words={words}
-                    categories={wordCategories}
-                    selectedLanguages={selectedLanguages}
-                    onBack={handleReturnToVocabMenu}
-                    onAddWord={(word) => {
-                      const newWord = { ...word, id: Date.now().toString() };
-                      const updatedWords = [...words, newWord];
-                      setWords(updatedWords);
-                      localStorage.setItem('dailyWords', JSON.stringify(updatedWords));
-                      // Level-Up-Dialog deaktivieren für Worthinzufügung
-                      handleMissionComplete('erstellt', 1, false);
-                    }}
-                    onDeleteWord={(wordId) => {
-                      const updatedWords = words.filter(w => w.id !== wordId);
-                      setWords(updatedWords);
-                      localStorage.setItem('dailyWords', JSON.stringify(updatedWords));
-                    }}
-                    onAddCategory={handleAddWordCategory}
-                    onDeleteCategory={deleteWordCategory}
-                    onWordResult={(word, isCorrect) => handleWordResult(word, isCorrect, 'daily')}
-                  />
-                )}
+setActiveSubmenu(option);
+setCurrentView(viewMapping[option]);
+};
 
-                {currentView === 'difficultWords' && (
-                  <DifficultWords
-                    difficultWords={difficultWords}
-                    selectedLanguages={selectedLanguages}
-                    onComplete={() => handleMissionComplete('gelernt')}
-                    onBack={handleReturnToVocabMenu}
-                    onWordResult={(word, isCorrect) => handleWordResult(word, isCorrect, word.source || 'daily')} 
-                    onDeleteWord={(wordKey) => {
-                      const newDifficultWords = { ...difficultWords };
-                      delete newDifficultWords[wordKey];
-                      setDifficultWords(newDifficultWords);
-                      localStorage.setItem('difficultWords', JSON.stringify(newDifficultWords));
-                    }}
-                    wordCategories={wordCategories}
-                    dailyWords={words}
-                  />
-                )}
+const handleReturnToVocabMenu = () => {
+setCurrentView('learn');
+setActiveSubmenu(null);
+};
 
-                {currentView === 'sentence' && (
-                  <SentenceCategories 
-                    onSelectCategory={(category) => {
-                      switch(category) {
-                        case 'structure':
-                          setCurrentView('sentenceStructure');
-                          break;
-                        case 'dailySentence':
-                          setCurrentView('dailySentence');
-                          break;
-                      }
-                    }}
-                  />
-                )}
+if (loading) {
+return <S.LoadingSpinner>Laden...</S.LoadingSpinner>;
+}
 
-                {currentView === 'sentenceStructure' && (
-                  sentenceLevel ? (
-                    <SentenceStructureGame 
-                      level={sentenceLevel} 
-                      onBack={() => setSentenceLevel(null)}
-                      selectedLanguages={selectedLanguages}
-                      onComplete={() => handleMissionComplete('erstellt')}
-                    />
-                  ) : (
-                    <SentenceStructureMenu 
-                      onSelectLevel={(level) => setSentenceLevel(level)} 
-                    />
-                  )
-                )}
+return (
+<S.AppContainer>
+<S.StarsBackground />
 
-                {currentView === 'dailySentence' && (
-                  <DailySentence
-                    sentences={sentences}
-                    categories={sentenceCategories}
-                    selectedLanguages={selectedLanguages}
-                    onComplete={() => handleMissionComplete('erstellt')}
-                    onAddSentence={(sentence) => {
-                      const newSentence = { ...sentence, id: Date.now().toString() };
-                      const updatedSentences = [...sentences, newSentence];
-                      setSentences(updatedSentences);
-                      localStorage.setItem('dailySentences', JSON.stringify(updatedSentences));
-                      handleMissionComplete('erstellt');
-                    }}
-                    onDeleteSentence={(sentenceId) => {
-                      const updatedSentences = sentences.filter(s => s.id !== sentenceId);
-                      setSentences(updatedSentences);
-                      localStorage.setItem('dailySentences', JSON.stringify(updatedSentences));
-                    }}
-                    onAddCategory={handleAddSentenceCategory}
-                    onDeleteCategory={deleteSentenceCategory}
-                  />
-                )}
+<S.MainContent>
+  <S.Card>
+    {currentView === 'main' ? (
+      <>
+        <LevelHeader 
+          user={user} 
+          missionProgress={{
+            vokabeln: missionsFortschritt.gelernt,
+            satzbau: missionsFortschritt.erstellt,
+            verben: missionsFortschritt.verben,
+            totalScore: missionsFortschritt.gesamtPunkte
+          }}
+          logout={logout}
+          onProfileClick={() => setCurrentView('profile')}
+        />
 
-                {currentView === 'verbEndings' && (
-                  <VerbEndings 
-                    onBack={handleBack}
-                    selectedLanguages={selectedLanguages}
-                    onComplete={() => handleMissionComplete('verben')}
-                  />
-                )}
+        <S.ContentSection>
+          <LanguageFilter
+            selectedLanguages={selectedLanguages}
+            onLanguageToggle={handleLanguageToggle}
+          />
+          
+          <S.MissionGroup>
+            <S.MissionButton onClick={() => setCurrentView('learn')}>
+              <S.MissionContent>
+                <S.PlanetIcon>🌍</S.PlanetIcon>
+                <S.MissionInfo>
+                  <S.MissionTitle>Vokabel-Training</S.MissionTitle>
+                  <S.MissionDescription>Neue Wörter und Übungen</S.MissionDescription>
+                </S.MissionInfo>
+              </S.MissionContent>
+            </S.MissionButton>
 
-                {currentView === 'profile' && (
-                  <ProfileForm />
-                )}
-                
-                {currentView === 'savesync' && (
-                  <GameSaveSync />
-                )}
-              </S.SubContent>
-            </>
+            <S.MissionButton onClick={() => setCurrentView('sentence')}>
+              <S.MissionContent>
+                <S.PlanetIcon>🌌</S.PlanetIcon>
+                <S.MissionInfo>
+                  <S.MissionTitle>Satzstruktur</S.MissionTitle>
+                  <S.MissionDescription>Grammatik und Satzbau</S.MissionDescription>
+                </S.MissionInfo>
+              </S.MissionContent>
+            </S.MissionButton>
+
+            <S.MissionButton onClick={() => setCurrentView('verbEndings')}>
+              <S.MissionContent>
+                <S.PlanetIcon>🌠</S.PlanetIcon>
+                <S.MissionInfo>
+                  <S.MissionTitle>Verb-Training</S.MissionTitle>
+                  <S.MissionDescription>Verben und Konjugationen</S.MissionDescription>
+                </S.MissionInfo>
+              </S.MissionContent>
+            </S.MissionButton>
+            
+            {/* Option für Spielstand-Synchronisation */}
+            <S.MissionButton onClick={() => setCurrentView('savesync')}>
+              <S.MissionContent>
+                <S.PlanetIcon>💾</S.PlanetIcon>
+                <S.MissionInfo>
+                  <S.MissionTitle>Spielstände</S.MissionTitle>
+                  <S.MissionDescription>Synchronisieren und verwalten</S.MissionDescription>
+                </S.MissionInfo>
+              </S.MissionContent>
+            </S.MissionButton>
+          </S.MissionGroup>
+
+          <S.ProgressSection>
+            <S.ProgressTitle>
+              <span>📡</span> Missions-Fortschritt
+            </S.ProgressTitle>
+            
+            {/* Direkt eingefügter Fortschritt ohne externe Komponenten */}
+            <div style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                <span style={{ color: '#93c5fd' }}>🧠 Wörter gelernt</span>
+                <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.gelernt}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                <span style={{ color: '#93c5fd' }}>📝 Erstellte Elemente</span>
+                <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.erstellt}</span>
+              </div>
+             
+              <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', padding: '8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                <span style={{ color: '#93c5fd' }}>🏆 Gesamt-Punkte</span>
+                <span style={{ color: 'white', fontWeight: 'bold' }}>{missionsFortschritt.gesamtPunkte}</span>
+              </div>
+            </div>
+            
+            {/* Online/Offline Status-Anzeige */}
+            <div style={{ marginTop: '15px', fontSize: '12px', textAlign: 'center', color: '#93c5fd' }}>
+              {isOnline ? '🌐 Online' : '📵 Offline'} • 
+              Sync: {syncStatus === 'synced' ? '✅' : 
+                      syncStatus === 'syncing' ? '🔄' : 
+                      syncStatus === 'error' ? '❌' : '⏳'}
+            </div>
+          </S.ProgressSection>
+        </S.ContentSection>
+      </>
+    ) : (
+      <>
+        <S.SubHeader>
+          <S.BackButton onClick={handleBack}>
+            <span>←</span> Zurück zur Kommandozentrale
+          </S.BackButton>
+          <S.SubTitle>
+            {currentView === 'learn' && 'Vokabel-Training'}
+            {currentView === 'learnVocab' && 'Vokabeln lernen'}
+            {currentView === 'dailyWord' && 'Wort des Tages'}
+            {currentView === 'difficultWords' && 'Schwierige Wörter'}
+            {currentView === 'sentence' && 'Satzstruktur'}
+            {currentView === 'sentenceStructure' && 'Satzstruktur lernen'}
+            {currentView === 'dailySentence' && 'Satz des Tages'}
+            {currentView === 'verbEndings' && 'Verb-Training'}
+            {currentView === 'savesync' && 'Spielstände verwalten'}
+          </S.SubTitle>
+        </S.SubHeader>
+
+        <S.SubContent>
+          {currentView === 'learn' && !activeSubmenu && (
+            <VocabMenu onSelectOption={handleVocabMenuSelect} />
           )}
-        </S.Card>
-      </S.MainContent>
 
-      <LevelUpCelebration 
-        level={currentLevel}
-        isOpen={showLevelUp}
-        onClose={() => setShowLevelUp(false)}
-      />
-    </S.AppContainer>
-  );
+          {currentView === 'learnVocab' && (
+            <LearnGerman 
+              selectedLanguages={selectedLanguages}
+              onComplete={() => handleMissionComplete('gelernt')}
+              onBack={handleReturnToVocabMenu}
+              onWordResult={handleWordResult}
+            />
+          )}
+
+          {currentView === 'dailyWord' && (
+            <DailyWordView
+              words={words}
+              categories={wordCategories}
+              selectedLanguages={selectedLanguages}
+              onBack={handleReturnToVocabMenu}
+              onAddWord={(word) => {
+                const newWord = { ...word, id: Date.now().toString() };
+                const updatedWords = [...words, newWord];
+                setWords(updatedWords);
+                localStorage.setItem('dailyWords', JSON.stringify(updatedWords));
+                // Level-Up-Dialog deaktivieren für Worthinzufügung
+                handleMissionComplete('erstellt', 1, false);
+              }}
+              onDeleteWord={(wordId) => {
+                const updatedWords = words.filter(w => w.id !== wordId);
+                setWords(updatedWords);
+                localStorage.setItem('dailyWords', JSON.stringify(updatedWords));
+              }}
+              onAddCategory={handleAddWordCategory}
+              onDeleteCategory={deleteWordCategory}
+              onWordResult={(word, isCorrect) => handleWordResult(word, isCorrect, 'daily')}
+            />
+          )}
+
+          {currentView === 'difficultWords' && (
+            <DifficultWords
+              difficultWords={difficultWords}
+              selectedLanguages={selectedLanguages}
+              onComplete={() => handleMissionComplete('gelernt')}
+              onBack={handleReturnToVocabMenu}
+              onWordResult={(word, isCorrect) => handleWordResult(word, isCorrect, word.source || 'daily')} 
+              onDeleteWord={(wordKey) => {
+                const newDifficultWords = { ...difficultWords };
+                delete newDifficultWords[wordKey];
+                setDifficultWords(newDifficultWords);
+                localStorage.setItem('difficultWords', JSON.stringify(newDifficultWords));
+              }}
+              wordCategories={wordCategories}
+              dailyWords={words}
+            />
+          )}
+
+          {currentView === 'sentence' && (
+            <SentenceCategories 
+              onSelectCategory={(category) => {
+                switch(category) {
+                  case 'structure':
+                    setCurrentView('sentenceStructure');
+                    break;
+                  case 'dailySentence':
+                    setCurrentView('dailySentence');
+                    break;
+                }
+              }}
+            />
+          )}
+
+          {currentView === 'sentenceStructure' && (
+            sentenceLevel ? (
+              <SentenceStructureGame 
+                level={sentenceLevel} 
+                onBack={() => setSentenceLevel(null)}
+                selectedLanguages={selectedLanguages}
+                onComplete={() => handleMissionComplete('erstellt')}
+              />
+            ) : (
+              <SentenceStructureMenu 
+                onSelectLevel={(level) => setSentenceLevel(level)} 
+              />
+            )
+          )}
+
+          {currentView === 'dailySentence' && (
+            <DailySentence
+              sentences={sentences}
+              categories={sentenceCategories}
+              selectedLanguages={selectedLanguages}
+              onComplete={() => handleMissionComplete('erstellt')}
+              onAddSentence={(sentence) => {
+                const newSentence = { ...sentence, id: Date.now().toString() };
+                const updatedSentences = [...sentences, newSentence];
+                setSentences(updatedSentences);
+                localStorage.setItem('dailySentences', JSON.stringify(updatedSentences));
+                handleMissionComplete('erstellt');
+              }}
+              onDeleteSentence={(sentenceId) => {
+                const updatedSentences = sentences.filter(s => s.id !== sentenceId);
+                setSentences(updatedSentences);
+                localStorage.setItem('dailySentences', JSON.stringify(updatedSentences));
+              }}
+              onAddCategory={handleAddSentenceCategory}
+              onDeleteCategory={deleteSentenceCategory}
+            />
+          )}
+
+          {currentView === 'verbEndings' && (
+            <VerbEndings 
+              onBack={handleBack}
+              selectedLanguages={selectedLanguages}
+              onComplete={() => handleMissionComplete('verben')}
+            />
+          )}
+
+          {currentView === 'profile' && (
+            <ProfileForm />
+          )}
+          
+          {currentView === 'savesync' && (
+            <GameSaveSync />
+          )}
+        </S.SubContent>
+      </>
+    )}
+  </S.Card>
+</S.MainContent>
+
+<LevelUpCelebration 
+  level={currentLevel}
+  isOpen={showLevelUp}
+  onClose={() => setShowLevelUp(false)}
+/>
+</S.AppContainer>
+);
 };
 
 // Die App-Komponente mit dem entsprechenden Router
 const App = () => {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <GameSaveProvider>
-          <Routes>
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/register" element={<RegisterForm />} />
-            <Route 
-              path="/" 
-              element={
-                <LicenseProtectedRoute>
-                  <ProtectedRoute>
-                    <MainAppContent />
-                  </ProtectedRoute>
-                </LicenseProtectedRoute>
-              } 
-            />
-          </Routes>
-        </GameSaveProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+return (
+<BrowserRouter>
+<AuthProvider>
+  <GameSaveProvider>
+    <Routes>
+      <Route path="/login" element={<LoginForm />} />
+      <Route path="/register" element={<RegisterForm />} />
+      <Route 
+        path="/" 
+        element={
+          <LicenseProtectedRoute>
+            <ProtectedRoute>
+              <MainAppContent />
+            </ProtectedRoute>
+          </LicenseProtectedRoute>
+        } 
+      />
+    </Routes>
+  </GameSaveProvider>
+</AuthProvider>
+</BrowserRouter>
+);
 };
 
 // WICHTIG: Der default-Export, der in main.jsx importiert wird
 export default App;
-                  

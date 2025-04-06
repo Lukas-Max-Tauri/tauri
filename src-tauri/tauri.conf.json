@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DaZ Connect",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "de.dazconnect.app",
   "build": {
     "frontendDist": "../dist",
@@ -11,12 +11,10 @@
   },
   "plugins": {
     "@tauri-apps/plugin-http": {
-      "all": true,
+      "all": false,
       "scope": [
-        "https://us-central1-daz-connect.cloudfunctions.net/backend/*", 
         "https://us-central1-daz-connect.cloudfunctions.net/*",
         "https://backend-6bu6t6ce2a-uc.a.run.app/*",
-        "http://localhost:*",
         "https://texttospeech.googleapis.com/*",
         "https://daz-connect.web.app/*",
         "https://daz-connect.firebaseapp.com/*",
@@ -26,7 +24,7 @@
         "https://firestore.googleapis.com/*",
         "https://*.firebaseio.com/*",
         "wss://*.firebaseio.com/*",
-        "https://*.firebase.googleapis.com/*"
+        "http://localhost:*"
       ]
     },
     "shell": {},
@@ -37,7 +35,12 @@
       "all": true
     },
     "fs": {
-      "scope": ["$DOCUMENT/*", "$APP/*", "$DESKTOP/*", "$TEMP/*", "**/*.log"]
+      "scope": [
+        "$APP/*",
+        "$DOCUMENT/DaZConnect/*",
+        "$TEMP/dazconnect/*",
+        "$APP/logs/*.log"
+      ]
     }
   },
   "app": {
@@ -60,6 +63,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "Lukas Beutler",
+    "copyright": "© 2025 Lukas Beutler",
+    "shortDescription": "DaZ Connect - Sprachlern-Anwendung für Deutsch als Zweitsprache",
+    "longDescription": "DaZ Connect unterstützt beim Erlernen von Deutsch als Zweitsprache mit interaktiven Übungen und Kommunikationstools.",
     "resources": [
       "assets/google-credentials.json"
     ],
@@ -69,6 +76,21 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+"windows": {
+  "wix": {
+    "language": ["de-DE"]
+  },
+  "certificateThumbprint": "e6155fcaea2278bda07ac774b98d4177c3a8a58f",
+  "digestAlgorithm": "sha256",
+  "timestampUrl": "http://timestamp.certum.pl/"
+},
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.13",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    }
   }
 }

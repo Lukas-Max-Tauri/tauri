@@ -37,6 +37,8 @@ export function LearnGerman({ onWordResult, selectedLanguages, onComplete, onBac
   const [score, setScore] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [shuffledWords, setShuffledWords] = useState([]);
+  // Track if user has already gotten a correct answer this session
+  const [hasCorrectAnswer, setHasCorrectAnswer] = useState(false);
 
   // Kombinieren aller Vokabeldatenquellen
   const getAllVocabData = (category) => {
@@ -73,6 +75,7 @@ export function LearnGerman({ onWordResult, selectedLanguages, onComplete, onBac
     setShowAnswer(false);
     setScore(0);
     setCurrentIndex(0);
+    // We don't reset hasCorrectAnswer here, as it should persist for the entire session
   };
 
   const handleBack = () => {
@@ -112,10 +115,17 @@ export function LearnGerman({ onWordResult, selectedLanguages, onComplete, onBac
     if (correctAnswer === userAnswer) {
       setScore(score + 1);
       setFeedback('Richtig! 🎉');
-      onWordResult?.(wordWithSource, true);
+      
+      // Pass isFirstCorrect flag to parent component
+      const isFirstCorrect = !hasCorrectAnswer;
+      if (isFirstCorrect) {
+        setHasCorrectAnswer(true);
+      }
+      
+      onWordResult?.(wordWithSource, true, isFirstCorrect);
     } else {
       setFeedback(`Falsch. Die richtige Antwort ist: ${shuffledWords[currentIndex].german}`);
-      onWordResult?.(wordWithSource, false);
+      onWordResult?.(wordWithSource, false, false);
     }
     setShowAnswer(true);
   };
