@@ -1,0 +1,96 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "DaZ Connect",
+  "version": "1.0.0",
+  "identifier": "de.dazconnect.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "plugins": {
+    "@tauri-apps/plugin-http": {
+      "all": false,
+      "scope": [
+        "https://us-central1-daz-connect.cloudfunctions.net/*",
+        "https://backend-6bu6t6ce2a-uc.a.run.app/*",
+        "https://texttospeech.googleapis.com/*",
+        "https://daz-connect.web.app/*",
+        "https://daz-connect.firebaseapp.com/*",
+        "https://*.googleapis.com/*",
+        "https://identitytoolkit.googleapis.com/*",
+        "https://securetoken.googleapis.com/*",
+        "https://firestore.googleapis.com/*",
+        "https://*.firebaseio.com/*",
+        "wss://*.firebaseio.com/*",
+        "http://localhost:*"
+      ]
+    },
+    "shell": {},
+    "dialog": {
+      "all": true
+    },
+    "window": {
+      "all": true
+    },
+    "fs": {
+      "scope": [
+        "$APP/*",
+        "$DOCUMENT/DaZConnect/*",
+        "$TEMP/dazconnect/*",
+        "$APP/logs/*.log"
+      ]
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "DaZ Connect - Sprache verbindet Welten",
+        "width": 800,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "focus": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://backend-6bu6t6ce2a-uc.a.run.app https://backend-6bu6t6ce2a-uc.a.run.app/* https://texttospeech.googleapis.com https://us-central1-daz-connect.cloudfunctions.net https://us-central1-daz-connect.cloudfunctions.net/backend/* http://localhost:* https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com wss://*.firebaseio.com https://*.firebaseio.com https://*.firebase.googleapis.com; media-src 'self' blob: data:; audio-src 'self' blob: data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'"
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "Lukas Beutler",
+    "copyright": "© 2025 Lukas Beutler",
+    "shortDescription": "DaZ Connect - Sprachlern-Anwendung für Deutsch als Zweitsprache",
+    "longDescription": "DaZ Connect unterstützt beim Erlernen von Deutsch als Zweitsprache mit interaktiven Übungen und Kommunikationstools.",
+    "resources": [
+      "assets/google-credentials.json"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+"windows": {
+  "wix": {
+    "language": ["de-DE"]
+  },
+  "certificateThumbprint": "e6155fcaea2278bda07ac774b98d4177c3a8a58f",
+  "digestAlgorithm": "sha256",
+  "timestampUrl": "http://timestamp.certum.pl/"
+},
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.13",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    }
+  }
+}

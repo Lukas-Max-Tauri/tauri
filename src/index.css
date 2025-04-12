@@ -1,0 +1,208 @@
+/* Level Header Styles */
+.level-header {
+  position: relative;
+  width: 100%;
+}
+
+.level-up-notification {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+}
+
+.level-up-content {
+  background-color: rgba(234, 179, 8, 0.9);
+  color: black;
+  padding: 8px 24px;
+  border-radius: 9999px;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+  animation: bounce 1s ease-in-out;
+}
+
+.header-container {
+  background: linear-gradient(to right, #312e81, #581c87);
+  padding: 24px;
+  border-radius: 16px 16px 0 0;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.astronaut-emoji {
+  font-size: 24px;
+}
+
+.username {
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.logout-button {
+  padding: 8px 16px;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: rgb(252, 165, 165);
+  border-radius: 8px;
+  transition: background-color 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Level Display */
+.level-display {
+  background-color: rgba(15, 23, 42, 0.5);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.level-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.level-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.medal-emoji {
+  font-size: 20px;
+}
+
+.level-number {
+  color: rgb(147, 197, 253);
+  font-weight: bold;
+}
+
+.rank-name {
+  color: rgb(234, 179, 8);
+  font-weight: 500;
+}
+
+.xp-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.xp-text, .xp-counter {
+  color: rgb(147, 197, 253);
+  font-size: 14px;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  height: 16px;
+  background-color: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  margin-top: 8px;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #6366f1);
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-stripes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 16px 16px;
+  animation: progress 1s linear infinite;
+}
+
+.total-xp {
+  color: rgba(147, 197, 253, 0.7);
+  font-size: 12px;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* Mission Control */
+.mission-control {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.mission-control h1 {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.mission-control p {
+  color: rgb(147, 197, 253);
+  font-size: 14px;
+}
+
+/* Animations */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes progress {
+  0% { background-position: 16px 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 16px;
+  }
+  
+  .level-display {
+    padding: 12px;
+  }
+  
+  .username {
+    font-size: 16px;
+  }
+}

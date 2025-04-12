@@ -1,0 +1,71 @@
+{
+  "name": "deutsch-lern-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev:frontend": "vite",
+    "dev:backend": "nodemon backend/server.js",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "start:firebase": "cross-env CONNECTION_MODE=firebase node backend/server.js",
+    "dev:firebase:backend": "cross-env CONNECTION_MODE=firebase nodemon backend/server.js",
+    "dev:firebase": "concurrently \"npm run dev:frontend\" \"npm run dev:firebase:backend\"",
+    "start:local": "cross-env CONNECTION_MODE=local node backend/server.js",
+    "dev:local:backend": "cross-env CONNECTION_MODE=local nodemon backend/server.js",
+    "dev:local": "concurrently \"npm run dev:frontend\" \"npm run dev:local:backend\"",
+    "build": "vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "heroku-postbuild": "npm install --production=false && npm run build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.8.1",
+    "@tauri-apps/api": "^2.4.0",
+    "@tauri-apps/plugin-http": "^2.4.2",
+    "@vitejs/plugin-react": "4.0.0",
+    "bcryptjs": "^3.0.2",
+    "concurrently": "^8.2.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase": "^11.3.1",
+    "firebase-admin": "^13.2.0",
+    "firebase-functions": "^6.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.263.1",
+    "mongoose": "^8.10.1",
+    "nodemon": "^3.1.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.1.5",
+    "recharts": "^2.10.3",
+    "styled-components": "^6.1.15",
+    "uuid": "^11.0.5",
+    "vite": "^4.5.9"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.4.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "electron": "^35.0.1",
+    "electron-builder": "^25.1.8",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "cacheDirectories": [
+    "node_modules",
+    "backend/node_modules"
+  ]
+}

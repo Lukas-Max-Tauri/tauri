@@ -1,0 +1,169 @@
+/* src/components/LevelUpCelebration/LevelUpCelebration.css */
+
+.level-up-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+  
+  .level-up-modal {
+    background: linear-gradient(to bottom, #1a237e, #0d47a1);
+    border: 2px solid #64b5f6;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    color: white;
+    box-shadow: 0 0 20px rgba(100, 181, 246, 0.3),
+                0 0 40px rgba(100, 181, 246, 0.2);
+    animation: modalAppear 0.3s ease-out;
+  }
+  
+  .level-up-header {
+    text-align: center;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .level-up-header h2 {
+    font-size: 28px;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+  }
+  
+  .level-icon {
+    font-size: 32px;
+  }
+  
+  .bounce {
+    animation: bounce 1s infinite;
+  }
+  
+  .unlock-section, .features-section {
+    background-color: rgba(25, 118, 210, 0.3);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .unlock-section h3, .features-section h4 {
+    color: #90caf9;
+    margin: 0 0 12px 0;
+    font-size: 20px;
+  }
+  
+  .item-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 8px 0;
+  }
+  
+  .item-description {
+    color: #bbdefb;
+    font-style: italic;
+    margin: 8px 0;
+  }
+  
+  .features-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .features-section li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .feature-star {
+    color: #ffd700;
+    font-size: 20px;
+  }
+  
+  .continue-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #2196f3;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 16px;
+  }
+  
+  .continue-button:hover {
+    background-color: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+  }
+  
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    border-radius: 50%;
+    animation: fall 2.5s linear;
+    z-index: 1001;
+  }
+  
+  @keyframes modalAppear {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes fall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+    }
+  }
+  
+  /* Medienabfragen für Responsivität */
+  @media (max-width: 480px) {
+    .level-up-modal {
+      padding: 16px;
+    }
+  
+    .level-up-header h2 {
+      font-size: 24px;
+    }
+  
+    .level-icon {
+      font-size: 24px;
+    }
+  }

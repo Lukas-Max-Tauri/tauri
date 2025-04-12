@@ -1,0 +1,316 @@
+/* LearnGerman.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .backButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: white;
+    background: rgba(59, 130, 246, 0.1);
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    width: fit-content;
+  }
+  
+  .backButton:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateX(-4px);
+  }
+  
+  .backButton span {
+    font-size: 1.25rem;
+  }
+  
+  .modeSelection {
+    text-align: center;
+    background: rgba(17, 24, 39, 0.7);
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    margin: 1rem 0;
+  }
+  
+  .modeTitle {
+    color: #93c5fd;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .learnButton, .quizButton {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .learnButton {
+    background: linear-gradient(135deg, #22C55E, #16A34A);
+  }
+  
+  .learnButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  }
+  
+  .quizButton {
+    background: linear-gradient(135deg, #EAB308, #CA8A04);
+  }
+  
+  .quizButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+  }
+  
+  .germanWordContainer {
+    background: rgba(59, 130, 246, 0.15);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .germanWord {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .translationsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    background: rgba(17, 24, 39, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.3); /* Added back the blue border */
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .translationTitle {
+    color: #93c5fd;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .wordCounter {
+    color: #93c5fd;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  
+  
+  .wordList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;  /* Reduced gap */
+    width: 100%;
+    align-items: center;
+  }
+  
+  .wordItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;  /* Reduced padding */
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 500px;  /* Reduced max-width */
+  }
+  
+  .wordItem:hover {
+    background: rgba(59, 130, 246, 0.15);
+    transform: translateX(4px);
+  }
+  
+  .word {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;  /* Adjusted gap */
+    font-size: 1.2rem;  /* Slightly reduced font size */
+    color: white;
+  }
+  
+  .flag {
+    font-size: 1.5rem;  /* Adjusted flag size */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+  
+ 
+  .inputContainer {
+    width: 100%;
+    max-width: 500px;  /* Match wordItem max-width */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .answerInput {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  
+  .answerInput:focus {
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  .answerInput::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .feedback {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 1.1rem;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .feedbackCorrect {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+  }
+  
+  .feedbackWrong {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+  }
+ 
+.nextButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+  
+  .nextButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  
+  .nextButton:disabled {
+    background: #64748b;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .audioButton {
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .audioIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.1);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #3B82F6;
+  }
+  
+  .audioIcon:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .audioIcon.loading {
+    background: #f3f4f6;
+    cursor: wait;
+    color: #9ca3af;
+  }
+  
+  .audioIcon.error {
+    background: #fee2e2;
+    color: #ef4444;
+  }
+  
+  .audioIcon.playing {
+    background: #bfdbfe;
+    color: #1d4ed8;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }

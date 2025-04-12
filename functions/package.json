@@ -1,0 +1,35 @@
+{
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "DaZ Connect Backend Functions",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "lint": "echo 'Skipping lint'",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run serve",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.8.1",
+    "bcryptjs": "^3.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^6.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "firebase-functions-test": "^3.1.1"
+  },
+  "private": true
+}
