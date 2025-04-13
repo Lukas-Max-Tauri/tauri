@@ -1,0 +1,45 @@
+name: Manage Releases
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build
+      - name: Package Release
+        run: |
+          mkdir -p release
+          zip -r release/my-project-windows.zip .
+
+  release-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build
+      - name: Package Release
+        run: |
+          mkdir -p release
+          zip -r release/my-project-macos.zip .
+
+  upload-release:
+    runs-on: ubuntu-latest
+    needs: [release-windows, release-macos]
+    steps:
+      - name: Upload Windows Release
+        uses: actions/upload-artifact@v2
+        with:
+          name: deutsch-lern-app-windows
+          path: release/deutsch-lern-app-windows.zip
+
+      - name: Upload macOS Release
+        uses: actions/upload-artifact@v2
+        with:
+          name: deutsch-lern-app-macos
+          path: release/deutsch-lern-app-macos.zip
