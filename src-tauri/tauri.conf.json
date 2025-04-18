@@ -84,12 +84,15 @@
   "digestAlgorithm": "sha256",
   "timestampUrl": "http://timestamp.certum.pl/"
 },
-    "macOS": {
-      "frameworks": [],
-      "minimumSystemVersion": "10.13",
-      "signingIdentity": null,
-      "providerShortName": null,
-      "entitlements": null
-    }
+   "macOS": {
+  "frameworks": [],
+  "minimumSystemVersion": "10.13",
+  "signingIdentity": null,
+  "providerShortName": null,
+  "entitlements": null,
+  "category": "public.app-category.education",
+  "hardenedRuntime": true,
+  "exceptionDomain": "backend-6bu6t6ce2a-uc.a.run.app,us-central1-daz-connect.cloudfunctions.net"
+}
   }
 }
